@@ -1,13 +1,11 @@
-﻿using Amazon;
-using Amazon.S3;
-using Amazon.S3.Model;
-using Apps.AmazonS3.Constants;
+﻿using Amazon.S3.Model;
+using Apps.AmazonS3.Factories;
 using Apps.AmazonS3.Models.Request;
+using Apps.AmazonS3.Models.Request.Base;
 using Apps.AmazonS3.Models.Response;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
-using GetObjectRequest = Amazon.S3.Model.GetObjectRequest;
 
 namespace Apps.AmazonS3.Actions;
 
@@ -17,13 +15,13 @@ public class BucketActions
     #region Get
 
     [Action("List buckets", Description = "List all user's buckets")]
-    public async Task<List<S3Bucket>> ListBuckets(
+    public async Task<List<Bucket>> ListBuckets(
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
     {
-        var client = CreateClient(authenticationCredentialsProviders.ToArray());
+        var client = S3ClientFactory.CreateClient(authenticationCredentialsProviders.ToArray());
         var bucketResponse = await client.ListBucketsAsync();
 
-        return bucketResponse.Buckets;
+        return bucketResponse.Buckets.Select(x => new Bucket(x)).ToList();
     }
 
     [Action("List objects in a bucket", Description = "List all objects in a specific bucket")]
@@ -37,7 +35,7 @@ public class BucketActions
             BucketName = bucketName
         };
 
-        var client = await CreateBucketClient(authenticationCredentialsProviders.ToArray(), bucketName);
+        var client = await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(), bucketName);
         var response = await client.ListObjectsV2Async(request);
 
         return response.S3Objects.Select(x => new BucketObject(x)).ToList();
@@ -46,7 +44,7 @@ public class BucketActions
     [Action("Get object", Description = "Get object from a bucket")]
     public async Task<BucketObject> GetObject(
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-        [ActionParameter] GetObjectRequest objectData)
+        [ActionParameter] ObjectRequestModel objectData)
     {
         var request = new GetObjectRequest
         {
@@ -54,7 +52,9 @@ public class BucketActions
             Key = objectData.Key
         };
 
-        var client = await CreateBucketClient(authenticationCredentialsProviders.ToArray(), objectData.BucketName);
+        var client =
+            await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(),
+                objectData.BucketName);
 
         return new(await client.GetObjectAsync(request));
     }
@@ -64,9 +64,9 @@ public class BucketActions
     #region Put
 
     [Action("Upload an object", Description = "Upload an object to a bucket")]
-    public async Task<PutObjectResponse> UploadObject(
+    public async Task<BucketObject> UploadObject(
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-        [ActionParameter] UploadObjectRequest uploadData)
+        [ActionParameter] UploadObjectModel uploadData)
     {
         var request = new PutObjectRequest
         {
@@ -75,43 +75,69 @@ public class BucketActions
             InputStream = new MemoryStream(uploadData.FileContent)
         };
 
-        var client = await CreateBucketClient(authenticationCredentialsProviders.ToArray(), uploadData.BucketName);
+        var client =
+            await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(),
+                uploadData.BucketName);
 
-        return await client.PutObjectAsync(request);
+        await client.PutObjectAsync(request);
+
+        return new(uploadData.BucketName, uploadData.FileName);
+    }
+
+    [Action("Create a bucket", Description = "Create an S3 bucket.")]
+    public async Task<Bucket> CreateBucket(
+        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+        [ActionParameter] BucketRequestModel createData)
+    {
+        var request = new PutBucketRequest
+        {
+            BucketName = createData.BucketName,
+            UseClientRegion = true,
+        };
+
+        var client = S3ClientFactory.CreateClient(authenticationCredentialsProviders.ToArray());
+
+        await client.PutBucketAsync(request);
+
+        return new(createData.BucketName, DateTime.Now);
     }
 
     #endregion
 
-    #region Utils
+    #region Delete
 
-    private AmazonS3Client CreateClient(
-        AuthenticationCredentialsProvider[] authenticationCredentialsProviders,
-        RegionEndpoint? region = default)
-    {
-        var key = authenticationCredentialsProviders.First(p => p.KeyName == "access_key");
-        var secret = authenticationCredentialsProviders.First(p => p.KeyName == "access_secret");
-
-        if (string.IsNullOrEmpty(key.Value) || string.IsNullOrEmpty(secret.Value))
-            throw new Exception(ExceptionMessages.CredentialsMissing);
-
-        return new(key.Value, secret.Value, new AmazonS3Config
-        {
-            RegionEndpoint = region ?? RegionEndpoint.USWest1
-        });
-    }
-
-    // The client should have the same region as the bucket, so we have to find out
-    // bucket's region in the first place and create new client with this region
-    private async Task<AmazonS3Client> CreateBucketClient(
-        AuthenticationCredentialsProvider[] authenticationCredentialsProviders,
+    [Action("Delete a bucket", Description = "Create an S3 bucket.")]
+    public async Task DeleteBucket(
+        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+        [ActionParameter] [Display("Bucket name")]
         string bucketName)
     {
-        var client = CreateClient(authenticationCredentialsProviders);
-        var locationResponse = await client.GetBucketLocationAsync(bucketName);
+        var request = new DeleteBucketRequest
+        {
+            BucketName = bucketName,
+        };
 
-        var regionEndpoint = RegionEndpoint.GetBySystemName(locationResponse.Location.Value);
+        var client = await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(), bucketName);
 
-        return CreateClient(authenticationCredentialsProviders, regionEndpoint);
+        await client.DeleteBucketAsync(request);
+    }
+
+    [Action("Delete an object", Description = "Delete an object out of the S3 bucket.")]
+    public async Task DeleteObject(
+        IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
+        [ActionParameter] ObjectRequestModel deleteData)
+    {
+        var request = new DeleteObjectRequest
+        {
+            BucketName = deleteData.BucketName,
+            Key = deleteData.Key
+        };
+
+        var client =
+            await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(),
+                deleteData.BucketName);
+
+        await client.DeleteObjectAsync(request);
     }
 
     #endregion
