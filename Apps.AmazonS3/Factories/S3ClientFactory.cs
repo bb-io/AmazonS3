@@ -1,6 +1,7 @@
 ﻿using Amazon;
 using Amazon.S3;
 using Apps.AmazonS3.Constants;
+using Apps.AmazonS3.Utils;
 using Blackbird.Applications.Sdk.Common.Authentication;
 
 namespace Apps.AmazonS3.Factories;
@@ -30,7 +31,7 @@ public static class S3ClientFactory
         string bucketName)
     {
         var client = CreateClient(authenticationCredentialsProviders);
-        var locationResponse = await client.GetBucketLocationAsync(bucketName);
+        var locationResponse = await AmazonClientHandler.ExecuteS3Action(() => client.GetBucketLocationAsync(bucketName));
 
         var regionEndpoint = RegionEndpoint.GetBySystemName(locationResponse.Location.Value);
 

@@ -3,6 +3,7 @@ using Apps.AmazonS3.Factories;
 using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Request.Base;
 using Apps.AmazonS3.Models.Response;
+using Apps.AmazonS3.Utils;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
@@ -19,7 +20,7 @@ public class BucketActions
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
     {
         var client = S3ClientFactory.CreateClient(authenticationCredentialsProviders.ToArray());
-        var bucketResponse = await client.ListBucketsAsync();
+        var bucketResponse = await AmazonClientHandler.ExecuteS3Action(() => client.ListBucketsAsync());
 
         return bucketResponse.Buckets.Select(x => new Bucket(x)).ToList();
     }
@@ -36,7 +37,7 @@ public class BucketActions
         };
 
         var client = await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(), bucketName);
-        var response = await client.ListObjectsV2Async(request);
+        var response = await AmazonClientHandler.ExecuteS3Action(() => client.ListObjectsV2Async(request));
 
         return response.S3Objects.Select(x => new BucketObject(x)).ToList();
     }
@@ -56,7 +57,8 @@ public class BucketActions
             await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(),
                 objectData.BucketName);
 
-        return new(await client.GetObjectAsync(request));
+        var response = await AmazonClientHandler.ExecuteS3Action(() => client.GetObjectAsync(request));
+        return new(response);
     }
 
     #endregion
@@ -79,7 +81,7 @@ public class BucketActions
             await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(),
                 uploadData.BucketName);
 
-        await client.PutObjectAsync(request);
+        await AmazonClientHandler.ExecuteS3Action(() => client.PutObjectAsync(request));
 
         return new(uploadData.BucketName, uploadData.FileName);
     }
@@ -97,7 +99,7 @@ public class BucketActions
 
         var client = S3ClientFactory.CreateClient(authenticationCredentialsProviders.ToArray());
 
-        await client.PutBucketAsync(request);
+        await AmazonClientHandler.ExecuteS3Action(() => client.PutBucketAsync(request));
 
         return new(createData.BucketName, DateTime.Now);
     }
@@ -119,7 +121,7 @@ public class BucketActions
 
         var client = await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(), bucketName);
 
-        await client.DeleteBucketAsync(request);
+        await AmazonClientHandler.ExecuteS3Action(() => client.DeleteBucketAsync(request));
     }
 
     [Action("Delete an object", Description = "Delete an object out of the S3 bucket.")]
@@ -137,8 +139,14 @@ public class BucketActions
             await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(),
                 deleteData.BucketName);
 
-        await client.DeleteObjectAsync(request);
+        await AmazonClientHandler.ExecuteS3Action(() => client.DeleteObjectAsync(request));
     }
+
+    #endregion
+
+    #region Utils
+
+
 
     #endregion
 }
