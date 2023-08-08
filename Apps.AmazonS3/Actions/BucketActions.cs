@@ -28,15 +28,15 @@ public class BucketActions
     [Action("List objects in a bucket", Description = "List all objects in a specific bucket")]
     public async Task<List<BucketObject>> ListObjectsInBucket(
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-        [ActionParameter] [Display("Bucket name")]
-        string bucketName)
+        [ActionParameter] BucketRequestModel bucket)
     {
         var request = new ListObjectsV2Request()
         {
-            BucketName = bucketName
+            BucketName = bucket.BucketName
         };
 
-        var client = await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(), bucketName);
+        var client =
+            await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(), bucket.BucketName);
         var response = await AmazonClientHandler.ExecuteS3Action(() => client.ListObjectsV2Async(request));
 
         return response.S3Objects.Select(x => new BucketObject(x)).ToList();
@@ -89,11 +89,12 @@ public class BucketActions
     [Action("Create a bucket", Description = "Create an S3 bucket.")]
     public async Task<Bucket> CreateBucket(
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-        [ActionParameter] BucketRequestModel createData)
+        [ActionParameter] [Display("Bucket name")]
+        string bucketName)
     {
         var request = new PutBucketRequest
         {
-            BucketName = createData.BucketName,
+            BucketName = bucketName,
             UseClientRegion = true,
         };
 
@@ -101,7 +102,7 @@ public class BucketActions
 
         await AmazonClientHandler.ExecuteS3Action(() => client.PutBucketAsync(request));
 
-        return new(createData.BucketName, DateTime.Now);
+        return new(bucketName, DateTime.Now);
     }
 
     #endregion
@@ -111,15 +112,15 @@ public class BucketActions
     [Action("Delete a bucket", Description = "Create an S3 bucket.")]
     public async Task DeleteBucket(
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-        [ActionParameter] [Display("Bucket name")]
-        string bucketName)
+        [ActionParameter] BucketRequestModel bucket)
     {
         var request = new DeleteBucketRequest
         {
-            BucketName = bucketName,
+            BucketName = bucket.BucketName,
         };
 
-        var client = await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(), bucketName);
+        var client =
+            await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(), bucket.BucketName);
 
         await AmazonClientHandler.ExecuteS3Action(() => client.DeleteBucketAsync(request));
     }
@@ -141,12 +142,6 @@ public class BucketActions
 
         await AmazonClientHandler.ExecuteS3Action(() => client.DeleteObjectAsync(request));
     }
-
-    #endregion
-
-    #region Utils
-
-
 
     #endregion
 }
