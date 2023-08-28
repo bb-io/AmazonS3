@@ -73,8 +73,8 @@ public class BucketActions
         var request = new PutObjectRequest
         {
             BucketName = uploadData.BucketName,
-            Key = uploadData.FileName,
-            InputStream = new MemoryStream(uploadData.FileContent)
+            Key = uploadData.File.Name,
+            InputStream = new MemoryStream(uploadData.File.Bytes)
         };
 
         var client =
@@ -83,7 +83,7 @@ public class BucketActions
 
         await AmazonClientHandler.ExecuteS3Action(() => client.PutObjectAsync(request));
 
-        return new(uploadData.BucketName, uploadData.FileName);
+        return new(uploadData.BucketName, uploadData.File.Name);
     }
 
     [Action("Create a bucket", Description = "Create an S3 bucket.")]
