@@ -10,7 +10,7 @@ public class ConnectionValidator : IConnectionValidator
     public async ValueTask<ConnectionValidationResponse> ValidateConnection(
         IEnumerable<AuthenticationCredentialsProvider> authProviders, CancellationToken cancellationToken)
     {
-        var client = S3ClientFactory.CreateClient(authProviders.ToArray());
+        var client = AmazonClientFactory.CreateS3Client(authProviders.ToArray());
 
         try
         {
