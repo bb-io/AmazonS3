@@ -9,12 +9,12 @@ using Blackbird.Applications.Sdk.Utils.Webhooks.Bridge.Models.Request;
 
 namespace Apps.AmazonS3.Webhooks.Handlers.Base;
 
-public abstract class S3WebhookHandler : InvocableBridgeWebhookHandler, IWebhookEventHandler
+public abstract class S3WebhookHandler : InvocableBridgeWebhookHandler
 {
     protected abstract EventType Event { get; }
     private string Bucket { get; set; }
 
-    public S3WebhookHandler(InvocationContext invocationContext, BucketRequestModel bucketRequest) : base(
+    public S3WebhookHandler(InvocationContext invocationContext, [WebhookParameter] BucketRequestModel bucketRequest) : base(
         invocationContext)
     {
         Bucket = bucketRequest.BucketName;
@@ -56,11 +56,10 @@ public abstract class S3WebhookHandler : InvocableBridgeWebhookHandler, IWebhook
             });
 
             await snsClient.SubscribeAsync(new(topicArn, "https",
-                //InvocationContext.UriInfo.BridgeServiceUrl.ToString()));
-                "https://webhook.site/945c5a34-6758-4b4d-9d72-a8a028b3d277"));
+                $"{InvocationContext.UriInfo.BridgeServiceUrl}/webhooks/amazons3"));
         }
 
-         // await base.SubscribeAsync(creds, values);
+        await base.SubscribeAsync(creds, values);
     }
 
     public override async Task UnsubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> creds,
@@ -83,7 +82,7 @@ public abstract class S3WebhookHandler : InvocableBridgeWebhookHandler, IWebhook
             });
         }
 
-       // await base.UnsubscribeAsync(creds, values);
+        await base.UnsubscribeAsync(creds, values);
     }
 
     protected override Task<(BridgeRequest webhookData, BridgeCredentials bridgeCreds)> GetBridgeServiceInputs(
@@ -98,7 +97,7 @@ public abstract class S3WebhookHandler : InvocableBridgeWebhookHandler, IWebhook
 
         var bridgeCreds = new BridgeCredentials
         {
-            ServiceUrl = InvocationContext.UriInfo.BridgeServiceUrl.ToString(),
+            ServiceUrl = $"{InvocationContext.UriInfo.BridgeServiceUrl}/webhooks/amazons3",
             Token = ApplicationConstants.BlackbirdToken
         };
 
