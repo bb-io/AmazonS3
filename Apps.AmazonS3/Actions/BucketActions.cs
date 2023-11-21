@@ -19,7 +19,7 @@ public class BucketActions
     public async Task<List<Bucket>> ListBuckets(
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders)
     {
-        var client = S3ClientFactory.CreateClient(authenticationCredentialsProviders.ToArray());
+        var client = AmazonClientFactory.CreateS3Client(authenticationCredentialsProviders.ToArray());
         var bucketResponse = await AmazonClientHandler.ExecuteS3Action(() => client.ListBucketsAsync());
 
         return bucketResponse.Buckets.Select(x => new Bucket(x)).ToList();
@@ -36,7 +36,7 @@ public class BucketActions
         };
 
         var client =
-            await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(), bucket.BucketName);
+            await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(), bucket.BucketName);
         var response = await AmazonClientHandler.ExecuteS3Action(() => client.ListObjectsV2Async(request));
 
         return response.S3Objects.Select(x => new BucketObject(x)).ToList();
@@ -54,7 +54,7 @@ public class BucketActions
         };
 
         var client =
-            await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(),
+            await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(),
                 objectData.BucketName);
 
         var response = await AmazonClientHandler.ExecuteS3Action(() => client.GetObjectAsync(request));
@@ -78,7 +78,7 @@ public class BucketActions
         };
 
         var client =
-            await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(),
+            await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(),
                 uploadData.BucketName);
 
         await AmazonClientHandler.ExecuteS3Action(() => client.PutObjectAsync(request));
@@ -98,7 +98,7 @@ public class BucketActions
             UseClientRegion = true,
         };
 
-        var client = S3ClientFactory.CreateClient(authenticationCredentialsProviders.ToArray());
+        var client = AmazonClientFactory.CreateS3Client(authenticationCredentialsProviders.ToArray());
 
         await AmazonClientHandler.ExecuteS3Action(() => client.PutBucketAsync(request));
 
@@ -120,7 +120,7 @@ public class BucketActions
         };
 
         var client =
-            await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(), bucket.BucketName);
+            await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(), bucket.BucketName);
 
         await AmazonClientHandler.ExecuteS3Action(() => client.DeleteBucketAsync(request));
     }
@@ -137,7 +137,7 @@ public class BucketActions
         };
 
         var client =
-            await S3ClientFactory.CreateBucketClient(authenticationCredentialsProviders.ToArray(),
+            await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(),
                 deleteData.BucketName);
 
         await AmazonClientHandler.ExecuteS3Action(() => client.DeleteObjectAsync(request));
