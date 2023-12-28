@@ -20,7 +20,7 @@ public class BucketActions
     {
         _fileManagementClient = fileManagementClient;
     }
-    
+
     #region Get
 
     [Action("List buckets", Description = "List all user's buckets")]
@@ -44,7 +44,8 @@ public class BucketActions
         };
 
         var client =
-            await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(), bucket.BucketName);
+            await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(),
+                bucket.BucketName);
         var response = await AmazonClientHandler.ExecuteS3Action(() => client.ListObjectsV2Async(request));
 
         return response.S3Objects.Select(x => new BucketObject(x)).ToList();
@@ -83,7 +84,8 @@ public class BucketActions
         {
             BucketName = uploadData.BucketName,
             Key = uploadData.File.Name,
-            InputStream = fileStream
+            InputStream = fileStream,
+            Headers = { ContentLength = uploadData.File.Size }
         };
 
         var client =
@@ -129,7 +131,8 @@ public class BucketActions
         };
 
         var client =
-            await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(), bucket.BucketName);
+            await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(),
+                bucket.BucketName);
 
         await AmazonClientHandler.ExecuteS3Action(() => client.DeleteBucketAsync(request));
     }
