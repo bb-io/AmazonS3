@@ -1,4 +1,6 @@
 ﻿using Apps.AmazonS3.Actions;
+using Apps.AmazonS3.Factories;
+using Apps.AmazonS3.Utils;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Dynamic;
@@ -19,10 +21,10 @@ public class BucketDataHandler : BaseInvocable, IAsyncDataSourceHandler
         DataSourceContext context,
         CancellationToken cancellationToken)
     {
-        var actions = new BucketActions();
-        var buckets = await actions.ListBuckets(Creds);
+        var client = AmazonClientFactory.CreateS3Client(Creds.ToArray());
+        var bucketResponse = await AmazonClientHandler.ExecuteS3Action(() => client.ListBucketsAsync(cancellationToken));
         
-        return buckets
+        return bucketResponse.Buckets
             .Where(x => context.SearchString == null ||
                         x.BucketName.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(x => x.CreationDate)

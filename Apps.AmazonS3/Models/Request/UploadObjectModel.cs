@@ -1,9 +1,9 @@
 ﻿using Apps.AmazonS3.Models.Request.Base;
-using File = Blackbird.Applications.Sdk.Common.Files.File;
+using Blackbird.Applications.Sdk.Common.Files;
 
 namespace Apps.AmazonS3.Models.Request;
 
 public record UploadObjectModel : BucketRequestModel
 {
-    public File File { get; set; }
+    public FileReference File { get; set; }
 }

@@ -7,12 +7,20 @@ using Apps.AmazonS3.Utils;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 
 namespace Apps.AmazonS3.Actions;
 
 [ActionList]
 public class BucketActions
 {
+    private readonly IFileManagementClient _fileManagementClient;
+
+    public BucketActions(IFileManagementClient fileManagementClient)
+    {
+        _fileManagementClient = fileManagementClient;
+    }
+    
     #region Get
 
     [Action("List buckets", Description = "List all user's buckets")]
@@ -70,11 +78,12 @@ public class BucketActions
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] UploadObjectModel uploadData)
     {
+        var fileStream = await _fileManagementClient.DownloadAsync(uploadData.File);
         var request = new PutObjectRequest
         {
             BucketName = uploadData.BucketName,
             Key = uploadData.File.Name,
-            InputStream = new MemoryStream(uploadData.File.Bytes)
+            InputStream = fileStream
         };
 
         var client =
