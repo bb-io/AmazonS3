@@ -67,9 +67,14 @@ public class BucketActions
 
         var response = await AmazonClientHandler.ExecuteS3Action(() => client.GetObjectAsync(request));
 
-        var objectFile = await _fileManagementClient.UploadAsync(response.ResponseStream, response.Headers.ContentType,
-            response.Key);
-        return new(response, objectFile);
+        var downloadFileUrl = client.GetPreSignedURL(new()
+        {
+            BucketName = objectData.BucketName,
+            Key = objectData.Key,
+            Expires = DateTime.Now.AddHours(1)
+        });
+
+        return new(response, new(new(HttpMethod.Get, downloadFileUrl)));
     }
 
     #endregion
