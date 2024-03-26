@@ -16,13 +16,15 @@ public static class AmazonClientFactory
     {
         var key = creds.Get("access_key").Value;
         var secret = creds.Get("access_secret").Value;
+        var systemRegion = creds.Get("region").Value;
+        var defaultRegion = RegionEndpoint.GetBySystemName(systemRegion);
 
         if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(secret))
             throw new Exception(ExceptionMessages.CredentialsMissing);
 
         return new(key, secret, new AmazonS3Config
         {
-            RegionEndpoint = region ?? RegionEndpoint.USWest1
+            RegionEndpoint = region ?? defaultRegion
         });
     }
 
@@ -36,9 +38,11 @@ public static class AmazonClientFactory
         var locationResponse =
             await AmazonClientHandler.ExecuteS3Action(() => client.GetBucketLocationAsync(bucketName));
 
-        var regionEndpoint = RegionEndpoint.GetBySystemName(locationResponse.Location.Value);
+        var region = string.IsNullOrEmpty(locationResponse.Location.Value)
+            ? creds.Get("region").Value
+            : locationResponse.Location.Value;
 
-        return CreateS3Client(creds, regionEndpoint);
+        return CreateS3Client(creds, RegionEndpoint.GetBySystemName(region));
     }
 
     public static async Task<AmazonSimpleNotificationServiceClient> CreateSNSClient(
@@ -46,13 +50,15 @@ public static class AmazonClientFactory
     {
         var key = creds.Get("access_key").Value;
         var secret = creds.Get("access_secret").Value;
+        var systemRegion = creds.Get("region").Value;
+        var defaultRegion = RegionEndpoint.GetBySystemName(systemRegion);
 
         if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(secret))
             throw new Exception(ExceptionMessages.CredentialsMissing);
 
         return new(key, secret, new AmazonSimpleNotificationServiceConfig()
         {
-            RegionEndpoint = region ?? RegionEndpoint.USWest1
+            RegionEndpoint = region ?? defaultRegion
         });
     }
 }

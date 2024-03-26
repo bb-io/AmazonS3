@@ -7,6 +7,7 @@ using Apps.AmazonS3.Utils;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
+using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 
 namespace Apps.AmazonS3.Actions;
@@ -47,12 +48,11 @@ public class BucketActions
             await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(),
                 bucket.BucketName);
         var response = await AmazonClientHandler.ExecuteS3Action(() => client.ListObjectsV2Async(request));
-
         return response.S3Objects.Select(x => new BucketObject(x)).ToList();
     }
 
     [Action("Get object", Description = "Get object from a bucket")]
-    public async Task<BucketObject> GetObject(
+    public async Task<BucketFileObject> GetObject(
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] ObjectRequestModel objectData)
     {
@@ -67,7 +67,16 @@ public class BucketActions
                 objectData.BucketName);
 
         var response = await AmazonClientHandler.ExecuteS3Action(() => client.GetObjectAsync(request));
-        return new(response);
+
+        var downloadFileUrl = client.GetPreSignedURL(new()
+        {
+            BucketName = objectData.BucketName,
+            Key = objectData.Key,
+            Expires = DateTime.Now.AddHours(1)
+        });
+
+        var file = new FileReference(new(HttpMethod.Get, downloadFileUrl), response.Key, response.Headers.ContentType);
+        return new(response, file);
     }
 
     #endregion
@@ -75,7 +84,7 @@ public class BucketActions
     #region Put
 
     [Action("Upload an object", Description = "Upload an object to a bucket")]
-    public async Task<BucketObject> UploadObject(
+    public async Task UploadObject(
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] UploadObjectModel uploadData)
     {
@@ -85,16 +94,20 @@ public class BucketActions
             BucketName = uploadData.BucketName,
             Key = uploadData.File.Name,
             InputStream = fileStream,
-            Headers = { ContentLength = uploadData.File.Size }
+            Headers = { ContentLength = uploadData.File.Size },
+            ContentType = uploadData.File.ContentType
         };
+
+        if (!string.IsNullOrEmpty(uploadData.ObjectMetadata))
+        {
+            request.Metadata.Add("object", uploadData.ObjectMetadata);
+        }
 
         var client =
             await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(),
                 uploadData.BucketName);
 
         await AmazonClientHandler.ExecuteS3Action(() => client.PutObjectAsync(request));
-
-        return new(uploadData.BucketName, uploadData.File.Name);
     }
 
     [Action("Create a bucket", Description = "Create an S3 bucket.")]
