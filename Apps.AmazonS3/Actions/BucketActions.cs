@@ -79,16 +79,12 @@ public class BucketActions
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] UploadObjectModel uploadData)
     {
-        var stream = await _fileManagementClient.DownloadAsync(uploadData.File);
-        var memoryStream = new MemoryStream();
-        await stream.CopyToAsync(memoryStream);
-        stream.Position = 0;
-
+        var fileStream = await _fileManagementClient.DownloadAsync(uploadData.File);
         var request = new PutObjectRequest
         {
             BucketName = uploadData.BucketName,
             Key = uploadData.File.Name,
-            InputStream = memoryStream, 
+            InputStream = fileStream, 
             ContentType = uploadData.File.ContentType
         };
 
