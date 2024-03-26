@@ -354,3 +354,5 @@ healthchecksdb
 *.DS_Store
 *.dmg
 *.env
+
+*.zip
