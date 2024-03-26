@@ -7,6 +7,7 @@ using Apps.AmazonS3.Utils;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
+using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 
 namespace Apps.AmazonS3.Actions;
@@ -74,7 +75,8 @@ public class BucketActions
             Expires = DateTime.Now.AddHours(1)
         });
 
-        return new(response, new(new(HttpMethod.Get, downloadFileUrl)));
+        var file = new FileReference(new(HttpMethod.Get, downloadFileUrl), response.Key, response.Headers.ContentType);
+        return new(response, file);
     }
 
     #endregion
