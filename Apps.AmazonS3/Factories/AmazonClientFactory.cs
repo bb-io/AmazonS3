@@ -38,9 +38,11 @@ public static class AmazonClientFactory
         var locationResponse =
             await AmazonClientHandler.ExecuteS3Action(() => client.GetBucketLocationAsync(bucketName));
 
-        var regionEndpoint = RegionEndpoint.GetBySystemName(locationResponse.Location.Value);
+        var region = string.IsNullOrEmpty(locationResponse.Location.Value)
+            ? creds.Get("region").Value
+            : locationResponse.Location.Value;
 
-        return CreateS3Client(creds, regionEndpoint);
+        return CreateS3Client(creds, RegionEndpoint.GetBySystemName(region));
     }
 
     public static async Task<AmazonSimpleNotificationServiceClient> CreateSNSClient(

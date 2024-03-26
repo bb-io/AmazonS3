@@ -47,12 +47,11 @@ public class BucketActions
             await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(),
                 bucket.BucketName);
         var response = await AmazonClientHandler.ExecuteS3Action(() => client.ListObjectsV2Async(request));
-
         return response.S3Objects.Select(x => new BucketObject(x)).ToList();
     }
 
     [Action("Get object", Description = "Get object from a bucket")]
-    public async Task<BucketObject> GetObject(
+    public async Task<BucketFileObject> GetObject(
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] ObjectRequestModel objectData)
     {
@@ -67,7 +66,10 @@ public class BucketActions
                 objectData.BucketName);
 
         var response = await AmazonClientHandler.ExecuteS3Action(() => client.GetObjectAsync(request));
-        return new(response);
+
+        var objectFile = await _fileManagementClient.UploadAsync(response.ResponseStream, response.Headers.ContentType,
+            response.Key);
+        return new(response, objectFile);
     }
 
     #endregion
@@ -75,7 +77,7 @@ public class BucketActions
     #region Put
 
     [Action("Upload an object", Description = "Upload an object to a bucket")]
-    public async Task<BucketObject> UploadObject(
+    public async Task UploadObject(
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] UploadObjectModel uploadData)
     {
@@ -98,8 +100,6 @@ public class BucketActions
                 uploadData.BucketName);
 
         await AmazonClientHandler.ExecuteS3Action(() => client.PutObjectAsync(request));
-
-        return new(uploadData.BucketName, uploadData.File.Name);
     }
 
     [Action("Create a bucket", Description = "Create an S3 bucket.")]
