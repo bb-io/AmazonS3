@@ -87,7 +87,8 @@ public class BucketActions
     [Action("Upload an object", Description = "Upload an object to a bucket")]
     public async Task<BucketObject> UploadObject(
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-        [ActionParameter] UploadObjectModel uploadData
+        [ActionParameter] UploadObjectModel uploadData,
+        [ActionParameter] string objectMetadata
     )
     {
         var fileStream = await _fileManagementClient.DownloadAsync(uploadData.File);
@@ -97,8 +98,9 @@ public class BucketActions
             Key = uploadData.File.Name,
             InputStream = fileStream,
             ContentType = uploadData.File.ContentType,
-            Headers = { ContentLength = uploadData.File.Size }
+            Headers = { ContentLength = uploadData.File.Size, }
         };
+        request.Metadata.Add("object", objectMetadata);
 
         var client = await AmazonClientFactory.CreateS3BucketClient(
             authenticationCredentialsProviders.ToArray(),
