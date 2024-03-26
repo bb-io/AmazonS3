@@ -97,9 +97,10 @@ public class BucketActions
             BucketName = uploadData.BucketName,
             Key = uploadData.File.Name,
             InputStream = fileStream,
-            ContentType = uploadData.File.ContentType,
             Headers = { ContentLength = uploadData.File.Size, }
         };
+
+        // used for Argo specific processes
         request.Metadata.Add("object", objectMetadata);
 
         var client = await AmazonClientFactory.CreateS3BucketClient(
