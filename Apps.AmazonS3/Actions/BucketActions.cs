@@ -86,7 +86,8 @@ public class BucketActions
         {
             BucketName = uploadData.BucketName,
             Key = uploadData.File.Name,
-            InputStream = fileStream, 
+            InputStream = fileStream,
+            Headers = { ContentLength = uploadData.File.Size },
             ContentType = uploadData.File.ContentType
         };
 
