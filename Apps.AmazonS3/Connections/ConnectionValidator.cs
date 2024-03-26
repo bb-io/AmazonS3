@@ -8,26 +8,23 @@ namespace Apps.AmazonS3.Connections;
 public class ConnectionValidator : IConnectionValidator
 {
     public async ValueTask<ConnectionValidationResponse> ValidateConnection(
-        IEnumerable<AuthenticationCredentialsProvider> authProviders, CancellationToken cancellationToken)
+        IEnumerable<AuthenticationCredentialsProvider> authProviders,
+        CancellationToken cancellationToken
+    )
     {
         var client = AmazonClientFactory.CreateS3Client(authProviders.ToArray());
 
         try
         {
-            await AmazonClientHandler.ExecuteS3Action(() => client.ListBucketsAsync(cancellationToken));
+            await AmazonClientHandler.ExecuteS3Action(
+                () => client.ListBucketsAsync(cancellationToken)
+            );
 
-            return new()
-            {
-                IsValid = true
-            };
+            return new() { IsValid = true };
         }
         catch (Exception ex)
         {
-            return new()
-            {
-                IsValid = false,
-                Message = ex.Message
-            };
+            return new() { IsValid = false, Message = ex.Message };
         }
     }
 }
