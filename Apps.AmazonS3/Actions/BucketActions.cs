@@ -79,14 +79,23 @@ public class BucketActions
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
         [ActionParameter] UploadObjectModel uploadData)
     {
-        var fileStream = await _fileManagementClient.DownloadAsync(uploadData.File);
+        var stream = await _fileManagementClient.DownloadAsync(uploadData.File);
+        var memoryStream = new MemoryStream();
+        await stream.CopyToAsync(memoryStream);
+        stream.Position = 0;
+
         var request = new PutObjectRequest
         {
             BucketName = uploadData.BucketName,
             Key = uploadData.File.Name,
-            InputStream = fileStream,
-            Headers = { ContentLength = uploadData.File.Size }
+            InputStream = memoryStream, 
+            ContentType = uploadData.File.ContentType
         };
+
+        if (!string.IsNullOrEmpty(uploadData.ObjectMetadata))
+        {
+            request.Metadata.Add("object", uploadData.ObjectMetadata);
+        }
 
         var client =
             await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(),

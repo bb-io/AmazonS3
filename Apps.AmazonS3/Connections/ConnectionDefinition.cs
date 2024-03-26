@@ -15,7 +15,8 @@ public class ConnectionDefinition : IConnectionDefinition
             ConnectionProperties = new List<ConnectionProperty>
             {
                 new("access_key") { DisplayName = "Access key" },
-                new("access_secret") { DisplayName = "Access secret", Sensitive = true }
+                new("access_secret") { DisplayName = "Access secret", Sensitive = true },
+                new("region") { DisplayName = "Region", }
             }
         }
     };
@@ -25,8 +26,10 @@ public class ConnectionDefinition : IConnectionDefinition
     {
         var accessKey = values.First(x => x.Key == "access_key");
         var accessSecret = values.First(x => x.Key == "access_secret");
+        var region = values.First(x => x.Key == "region");
 
         yield return new(AuthenticationCredentialsRequestLocation.None, accessKey.Key, accessKey.Value);
         yield return new(AuthenticationCredentialsRequestLocation.None, accessSecret.Key, accessSecret.Value);
+        yield return new(AuthenticationCredentialsRequestLocation.None, region.Key, region.Value);
     }
 }
