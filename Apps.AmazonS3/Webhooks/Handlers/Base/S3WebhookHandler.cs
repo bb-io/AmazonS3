@@ -23,43 +23,75 @@ public abstract class S3WebhookHandler : InvocableBridgeWebhookHandler
     public override async Task SubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> creds,
         Dictionary<string, string> values)
     {
-        var s3Client = await AmazonClientFactory.CreateS3BucketClient(creds.ToArray(), Bucket);
-
-        var bucketNotifications = await s3Client.GetBucketNotificationAsync(Bucket);
-        var topics = bucketNotifications.TopicConfigurations;
-
-        if (!topics.Any(x => x.Events.Contains(Event)))
+        try
         {
-            var snsClient = await AmazonClientFactory.CreateSNSClient(creds.ToArray(), s3Client.Config.RegionEndpoint);
+            var s3Client = await AmazonClientFactory.CreateS3BucketClient(creds.ToArray(), Bucket);
 
-            var allTopics = await snsClient.ListTopicsAsync();
-            var blackbirdTopic =
-                allTopics.Topics.FirstOrDefault(x => x.TopicArn.Contains(ApplicationConstants.SnsTopic));
+            var bucketNotifications = await s3Client.GetBucketNotificationAsync(Bucket);
+            var topics = bucketNotifications.TopicConfigurations;
 
-            var topicArn = blackbirdTopic is not null
-                ? blackbirdTopic.TopicArn
-                : (await snsClient.CreateTopicAsync(
-                    $"Blackbird-{ApplicationConstants.SnsTopic}-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}"))
-                .TopicArn;
-
-            await snsClient.AuthorizeS3ToPublishAsync(topicArn, Bucket);
-
-            topics.Add(new()
+            await Logger.LogAsync(new
             {
-                Topic = topicArn,
-                Events = new() { Event }
-            });
-            await s3Client.PutBucketNotificationAsync(new()
-            {
-                BucketName = Bucket,
-                TopicConfigurations = topics
+                Message = "Attempting to subscribe to S3 event",
+                Topics = topics,
+                Bucket,
             });
 
-            await snsClient.SubscribeAsync(new(topicArn, "https",
-                $"{InvocationContext.UriInfo.BridgeServiceUrl}/webhooks/amazons3"));
+            if (!topics.Any(x => x.Events.Contains(Event)))
+            {
+                var snsClient = await AmazonClientFactory.CreateSNSClient(creds.ToArray(), s3Client.Config.RegionEndpoint);
+
+                var allTopics = await snsClient.ListTopicsAsync();
+                var blackbirdTopic =
+                    allTopics.Topics.FirstOrDefault(x => x.TopicArn.Contains(ApplicationConstants.SnsTopic));
+
+                var topicArn = blackbirdTopic is not null
+                    ? blackbirdTopic.TopicArn
+                    : (await snsClient.CreateTopicAsync(
+                        $"Blackbird-{ApplicationConstants.SnsTopic}-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}"))
+                    .TopicArn;
+
+                await snsClient.AuthorizeS3ToPublishAsync(topicArn, Bucket);
+
+                topics.Add(new()
+                {
+                    Topic = topicArn,
+                    Events = new() { Event }
+                });
+                await s3Client.PutBucketNotificationAsync(new()
+                {
+                    BucketName = Bucket,
+                    TopicConfigurations = topics
+                });
+
+                await Logger.LogAsync(new
+                {
+                    Message = "Trying to subscribe",
+                    BridgeServiceUrl = InvocationContext.UriInfo.BridgeServiceUrl,
+                    TopicArn = topicArn,
+                });
+
+                await snsClient.SubscribeAsync(new(topicArn, "https",
+                    $"{InvocationContext.UriInfo.BridgeServiceUrl}/webhooks/amazons3"));
+            }
+
+            await base.SubscribeAsync(creds, values);
         }
+        catch (Exception ex)
+        {
+            await Logger.LogAsync(new
+            {
+                Bucket,
+                Event,
+                Message = "Failed to subscribe to S3 event",
+                ExceptionMessage = ex.Message,
+                ExceptionStackTrace = ex.StackTrace,
+                ExceptionType = ex.GetType().Name,
+                InnerException = ex.InnerException?.Message
+            });
 
-        await base.SubscribeAsync(creds, values);
+            throw;
+        }
     }
 
     public override async Task UnsubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> creds,
