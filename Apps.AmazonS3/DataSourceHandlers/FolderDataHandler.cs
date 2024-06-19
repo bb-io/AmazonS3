@@ -1,6 +1,6 @@
 using Amazon.S3.Model;
 using Apps.AmazonS3.Factories;
-using Apps.AmazonS3.Models.Request;
+using Apps.AmazonS3.Polling.Models;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Dynamic;
@@ -10,29 +10,29 @@ namespace Apps.AmazonS3.DataSourceHandlers;
 
 public class FolderDataHandler : BaseInvocable, IAsyncDataSourceHandler
 {
-    private readonly FolderRequest _folderRequest;
+    private readonly PollingFolderRequest _pollingFolderRequest;
 
     private IEnumerable<AuthenticationCredentialsProvider> Creds =>
         InvocationContext.AuthenticationCredentialsProviders;
 
-    public FolderDataHandler(InvocationContext invocationContext, [ActionParameter] FolderRequest folderRequest) : base(
+    public FolderDataHandler(InvocationContext invocationContext, [ActionParameter] PollingFolderRequest pollingFolderRequest) : base(
         invocationContext)
     {
-        _folderRequest = folderRequest;
+        _pollingFolderRequest = pollingFolderRequest;
     }
 
     public async Task<Dictionary<string, string>> GetDataAsync(
         DataSourceContext context,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(_folderRequest.BucketName))
+        if (string.IsNullOrWhiteSpace(_pollingFolderRequest.BucketName))
             throw new("You should input Bucket name first");
 
-        var client = await AmazonClientFactory.CreateS3BucketClient(Creds.ToArray(), _folderRequest.BucketName);
+        var client = await AmazonClientFactory.CreateS3BucketClient(Creds.ToArray(), _pollingFolderRequest.BucketName);
 
         var objects = client.Paginators.ListObjectsV2(new()
         {
-            BucketName = _folderRequest.BucketName
+            BucketName = _pollingFolderRequest.BucketName
         });
         var result = new List<S3Object>();
 
