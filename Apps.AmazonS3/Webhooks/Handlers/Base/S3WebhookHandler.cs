@@ -1,4 +1,3 @@
-using Amazon.S3;
 using Apps.AmazonS3.Factories;
 using Apps.AmazonS3.Models.Request.Base;
 using Blackbird.Applications.Sdk.Common.Authentication;
@@ -6,6 +5,7 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Webhooks;
 using Blackbird.Applications.Sdk.Utils.Webhooks.Bridge;
 using Blackbird.Applications.Sdk.Utils.Webhooks.Bridge.Models.Request;
+using EventType = Amazon.S3.EventType;
 
 namespace Apps.AmazonS3.Webhooks.Handlers.Base;
 

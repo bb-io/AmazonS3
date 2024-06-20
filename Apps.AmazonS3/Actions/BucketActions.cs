@@ -47,8 +47,14 @@ public class BucketActions
         var client =
             await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(),
                 bucket.BucketName);
-        var response = await AmazonClientHandler.ExecuteS3Action(() => client.ListObjectsV2Async(request));
-        return response.S3Objects.Select(x => new BucketObject(x)).ToList();
+
+        var objects = client.Paginators.ListObjectsV2(request);
+        var result = new List<BucketObject>();
+        
+        await foreach (var s3Object in objects.S3Objects)
+            result.Add(new BucketObject(s3Object));
+
+        return result;
     }
 
     [Action("Get object", Description = "Get object from a bucket")]
