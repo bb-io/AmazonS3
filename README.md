@@ -62,6 +62,10 @@ Here is an example of how you can use the Amazon S3 app in a workflow:
 
 In this example, the workflow starts with the **On object created** event, which triggers when any object is created in your buckets. Then, the workflow uses the **Get object** action to retrieve the object that was created. In the next step we translate the object via `DeepL` and then upload the translated object back to the Amazon S3 bucket.
 
+## Eggs
+
+Check downloadable workflow prototypes featuring this app that you can import to your Nests [here](https://docs.blackbird.io/eggs/storage-to-mt/). 
+
 ## Feedback
 
 Do you want to use this app or do you have feedback on our implementation? Reach out to us using the [established channels](https://www.blackbird.io/) or create an issue.
