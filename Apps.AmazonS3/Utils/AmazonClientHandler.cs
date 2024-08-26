@@ -13,4 +13,16 @@ public static class AmazonClientHandler
             throw new Exception(ex.Message);
         }
     }
+    
+    public static T ExecuteS3Action<T>(Func<T> func)
+    {
+        try
+        {
+            return func();
+        }
+        catch(Exception ex)
+        {
+            throw new Exception(ex.Message);
+        }
+    }
 }
