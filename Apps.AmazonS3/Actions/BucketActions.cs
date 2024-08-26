@@ -43,9 +43,12 @@ public class BucketActions(IFileManagementClient fileManagementClient)
 
         var objects = AmazonClientHandler.ExecuteS3Action(() => client.Paginators.ListObjectsV2(request));
         var result = new List<BucketObject>();
-        
-        await foreach (var s3Object in objects.S3Objects)
-            result.Add(new BucketObject(s3Object));
+
+        await AmazonClientHandler.ExecuteS3Action(async () =>
+        {
+            await foreach (var s3Object in objects.S3Objects)
+                result.Add(new BucketObject(s3Object));
+        });
 
         return result;
     }
