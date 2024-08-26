@@ -38,8 +38,8 @@ public class BucketActions(IFileManagementClient fileManagementClient)
         };
 
         var client =
-            await AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(),
-                bucket.BucketName);
+            await AmazonClientHandler.ExecuteS3Action(() => AmazonClientFactory.CreateS3BucketClient(authenticationCredentialsProviders.ToArray(),
+                bucket.BucketName));
 
         var objects = AmazonClientHandler.ExecuteS3Action(() => client.Paginators.ListObjectsV2(request));
         var result = new List<BucketObject>();
