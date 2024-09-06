@@ -30,25 +30,12 @@ public static class AmazonClientFactory
 
     // The client should have the same region as the bucket, so we have to find out
     // bucket's region in the first place and create new client with this region
-    public static async Task<AmazonS3Client> CreateS3BucketClient(
+    public static Task<AmazonS3Client> CreateS3BucketClient(
         AuthenticationCredentialsProvider[] creds,
         string bucketName)
     {
-        var client = CreateS3Client(creds);
-
-        string region;
-        try
-        {
-            var locationResponse =
-                await AmazonClientHandler.ExecuteS3Action(() => client.GetBucketLocationAsync(bucketName));
-            region = locationResponse.Location.Value ?? creds.Get(CredNames.Region).Value;
-        }
-        catch (Exception)
-        {
-            region = creds.Get(CredNames.Region).Value;
-        }
-
-        return CreateS3Client(creds, RegionEndpoint.GetBySystemName(region));
+        var region = creds.Get(CredNames.Region).Value;
+        return Task.FromResult(CreateS3Client(creds, RegionEndpoint.GetBySystemName(region)));
     }
 
     public static async Task<AmazonSimpleNotificationServiceClient> CreateSNSClient(

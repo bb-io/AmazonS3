@@ -1,12 +1,9 @@
-﻿using Apps.AmazonS3.DataSourceHandlers;
-using Blackbird.Applications.Sdk.Common;
-using Blackbird.Applications.Sdk.Common.Dynamic;
+﻿using Blackbird.Applications.Sdk.Common;
 
 namespace Apps.AmazonS3.Models.Request.Base;
 
 public record BucketRequestModel
 {
     [Display("Bucket name")] 
-    [DataSource(typeof(BucketDataHandler))]
-    public string BucketName { get; set; }
+    public string BucketName { get; set; } = string.Empty;
 }

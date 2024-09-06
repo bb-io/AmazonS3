@@ -9,7 +9,6 @@ namespace Apps.AmazonS3.Polling.Models;
 public class PollingFolderRequest
 {
     [Display("Bucket name")] 
-    [DataSource(typeof(BucketDataHandler))]
     public string BucketName { get; set; }
     
     [Display("Folder")]
