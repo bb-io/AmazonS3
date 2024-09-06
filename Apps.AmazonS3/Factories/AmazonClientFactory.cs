@@ -14,9 +14,9 @@ public static class AmazonClientFactory
         AuthenticationCredentialsProvider[] creds,
         RegionEndpoint? region = default)
     {
-        var key = creds.Get("access_key").Value;
-        var secret = creds.Get("access_secret").Value;
-        var systemRegion = creds.Get("region").Value;
+        var key = creds.Get(CredNames.AccessKey).Value;
+        var secret = creds.Get(CredNames.AccessSecret).Value;
+        var systemRegion = creds.Get(CredNames.Region).Value;
         var defaultRegion = RegionEndpoint.GetBySystemName(systemRegion);
 
         if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(secret))
@@ -35,12 +35,18 @@ public static class AmazonClientFactory
         string bucketName)
     {
         var client = CreateS3Client(creds);
-        var locationResponse =
-            await AmazonClientHandler.ExecuteS3Action(() => client.GetBucketLocationAsync(bucketName));
 
-        var region = string.IsNullOrEmpty(locationResponse.Location.Value)
-            ? creds.Get("region").Value
-            : locationResponse.Location.Value;
+        string region;
+        try
+        {
+            var locationResponse =
+                await AmazonClientHandler.ExecuteS3Action(() => client.GetBucketLocationAsync(bucketName));
+            region = locationResponse.Location.Value ?? creds.Get(CredNames.Region).Value;
+        }
+        catch (Exception)
+        {
+            region = creds.Get(CredNames.Region).Value;
+        }
 
         return CreateS3Client(creds, RegionEndpoint.GetBySystemName(region));
     }
@@ -48,9 +54,9 @@ public static class AmazonClientFactory
     public static async Task<AmazonSimpleNotificationServiceClient> CreateSNSClient(
         AuthenticationCredentialsProvider[] creds, RegionEndpoint? region = default)
     {
-        var key = creds.Get("access_key").Value;
-        var secret = creds.Get("access_secret").Value;
-        var systemRegion = creds.Get("region").Value;
+        var key = creds.Get(CredNames.AccessKey).Value;
+        var secret = creds.Get(CredNames.AccessSecret).Value;
+        var systemRegion = creds.Get(CredNames.Region).Value;
         var defaultRegion = RegionEndpoint.GetBySystemName(systemRegion);
 
         if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(secret))

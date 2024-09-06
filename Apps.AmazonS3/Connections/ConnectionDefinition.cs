@@ -1,4 +1,5 @@
-﻿using Blackbird.Applications.Sdk.Common.Authentication;
+﻿using Apps.AmazonS3.Constants;
+using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Connections;
 
 namespace Apps.AmazonS3.Connections;
@@ -14,9 +15,9 @@ public class ConnectionDefinition : IConnectionDefinition
             ConnectionUsage = ConnectionUsage.Actions,
             ConnectionProperties = new List<ConnectionProperty>
             {
-                new("access_key") { DisplayName = "Access key" },
-                new("access_secret") { DisplayName = "Access secret", Sensitive = true },
-                new("region") { DisplayName = "Region", }
+                new(CredNames.AccessKey) { DisplayName = "Access key" },
+                new(CredNames.AccessSecret) { DisplayName = "Access secret", Sensitive = true },
+                new(CredNames.Region) { DisplayName = "Region", }
             }
         }
     };
