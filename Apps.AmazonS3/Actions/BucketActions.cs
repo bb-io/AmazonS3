@@ -9,6 +9,7 @@ using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
+using ListObjectsRequest = Apps.AmazonS3.Models.Request.ListObjectsRequest;
 
 namespace Apps.AmazonS3.Actions;
 
@@ -30,7 +31,7 @@ public class BucketActions(IFileManagementClient fileManagementClient)
     [Action("List objects in a bucket", Description = "List all objects in a specific bucket")]
     public async Task<List<BucketObject>> ListObjectsInBucket(
         IEnumerable<AuthenticationCredentialsProvider> authenticationCredentialsProviders,
-        [ActionParameter] BucketRequestModel bucket)
+        [ActionParameter] BucketRequestModel bucket, [ActionParameter] ListObjectsRequest input)
     {
         var request = new ListObjectsV2Request()
         {
@@ -48,7 +49,17 @@ public class BucketActions(IFileManagementClient fileManagementClient)
         {
             await foreach (var s3Object in objects.S3Objects)
             {
-                result.Add(new BucketObject(s3Object));
+                if (input.IncludeFoldersInResult != null && input.IncludeFoldersInResult == true)
+                { 
+                    result.Add(new BucketObject(s3Object)); 
+                }
+                else
+                {
+                    if (!s3Object.Key.EndsWith("/")  ) 
+                    {
+                        result.Add(new BucketObject(s3Object));
+                    }
+                }
             }
         }
         catch (Exception ex)
