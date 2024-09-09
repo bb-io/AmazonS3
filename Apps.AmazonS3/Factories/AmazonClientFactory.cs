@@ -41,7 +41,9 @@ public static class AmazonClientFactory
         {
             var locationResponse =
                 await AmazonClientHandler.ExecuteS3Action(() => client.GetBucketLocationAsync(bucketName));
-            region = locationResponse.Location.Value ?? creds.Get(CredNames.Region).Value;
+            if (locationResponse.Location.Value is null || String.IsNullOrEmpty(locationResponse.Location.Value))
+            { region = creds.Get(CredNames.Region).Value; } else
+            { region = locationResponse.Location.Value; }
         }
         catch (Exception)
         {
