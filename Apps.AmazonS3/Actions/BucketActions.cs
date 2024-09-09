@@ -9,6 +9,7 @@ using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
+using System.Text.RegularExpressions;
 using ListObjectsRequest = Apps.AmazonS3.Models.Request.ListObjectsRequest;
 
 namespace Apps.AmazonS3.Actions;
@@ -93,8 +94,9 @@ public class BucketActions(IFileManagementClient fileManagementClient)
             Key = objectData.Key,
             Expires = DateTime.Now.AddHours(1)
         });
+        string fileName = response.Key.Contains("/") ? response.Key.Substring(response.Key.LastIndexOf('/') + 1) : response.Key;
 
-        var file = new FileReference(new(HttpMethod.Get, downloadFileUrl), response.Key, response.Headers.ContentType);
+        var file = new FileReference(new(HttpMethod.Get, downloadFileUrl), fileName, response.Headers.ContentType);
         return new(response, file);
     }
 
