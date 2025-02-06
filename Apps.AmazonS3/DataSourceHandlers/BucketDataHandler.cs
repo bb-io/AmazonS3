@@ -1,8 +1,4 @@
-﻿using Apps.AmazonS3.Factories;
-using Apps.AmazonS3.Utils;
-using Blackbird.Applications.Sdk.Common;
-using Blackbird.Applications.Sdk.Common.Authentication;
-using Blackbird.Applications.Sdk.Common.Dynamic;
+﻿using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.AmazonS3.DataSourceHandlers;

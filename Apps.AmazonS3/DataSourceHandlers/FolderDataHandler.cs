@@ -1,8 +1,6 @@
 using Amazon.S3.Model;
-using Apps.AmazonS3.Factories;
 using Apps.AmazonS3.Polling.Models;
 using Blackbird.Applications.Sdk.Common;
-using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 

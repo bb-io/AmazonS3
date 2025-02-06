@@ -1,4 +1,3 @@
-using Apps.AmazonS3.Factories;
 using Apps.AmazonS3.Models.Request.Base;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Invocation;
