@@ -8,6 +8,6 @@ public record UploadObjectModel : BucketRequestModel
 {
     public FileReference File { get; set; }
 
-    [Display("Object metadata")]
+    [Display("File metadata")]
     public string? ObjectMetadata { get; set; }
 }

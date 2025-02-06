@@ -354,3 +354,4 @@ healthchecksdb
 *.DS_Store
 *.dmg
 *.env
+/Tests.AmazonS3/appsettings.json

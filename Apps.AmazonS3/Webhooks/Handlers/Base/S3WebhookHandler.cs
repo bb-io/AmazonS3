@@ -1,4 +1,3 @@
-using Apps.AmazonS3.Factories;
 using Apps.AmazonS3.Models.Request.Base;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Invocation;
@@ -12,27 +11,29 @@ namespace Apps.AmazonS3.Webhooks.Handlers.Base;
 public abstract class S3WebhookHandler : InvocableBridgeWebhookHandler
 {
     protected abstract EventType Event { get; }
-    private string Bucket { get; set; }
+    private string BucketName { get; set; }
+    protected AmazonInvocable AmazonInvocable { get; }
 
     public S3WebhookHandler(InvocationContext invocationContext, [WebhookParameter] BucketRequestModel bucketRequest) : base(
         invocationContext)
     {
-        Bucket = bucketRequest.BucketName;
+        BucketName = bucketRequest.BucketName;
+        AmazonInvocable = new AmazonInvocable(invocationContext);
     }
 
     public override async Task SubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> creds,
         Dictionary<string, string> values)
     {
-        var s3Client = await AmazonClientFactory.CreateS3BucketClient(creds.ToArray(), Bucket);
+        var s3Client = await AmazonInvocable.CreateBucketClient(BucketName);
 
-        var bucketNotifications = await s3Client.GetBucketNotificationAsync(Bucket);
+        var bucketNotifications = await AmazonInvocable.ExecuteAction(() => s3Client.GetBucketNotificationAsync(BucketName));
         var topics = bucketNotifications.TopicConfigurations;
 
         if (!topics.Any(x => x.Events.Contains(Event)))
         {
-            var snsClient = await AmazonClientFactory.CreateSNSClient(creds.ToArray(), s3Client.Config.RegionEndpoint);
+            var snsClient = AmazonInvocable.CreateSnsClient(s3Client.Config.RegionEndpoint);
 
-            var allTopics = await snsClient.ListTopicsAsync();
+            var allTopics = await AmazonInvocable.ExecuteAction(() => snsClient.ListTopicsAsync());
             var blackbirdTopic =
                 allTopics.Topics.FirstOrDefault(x => x.TopicArn.Contains(ApplicationConstants.SnsTopic));
 
@@ -42,21 +43,21 @@ public abstract class S3WebhookHandler : InvocableBridgeWebhookHandler
                     $"Blackbird-{ApplicationConstants.SnsTopic}-{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}"))
                 .TopicArn;
 
-            await snsClient.AuthorizeS3ToPublishAsync(topicArn, Bucket);
+            await AmazonInvocable.ExecuteAction(() => snsClient.AuthorizeS3ToPublishAsync(topicArn, BucketName));
 
             topics.Add(new()
             {
                 Topic = topicArn,
                 Events = new() { Event }
             });
-            await s3Client.PutBucketNotificationAsync(new()
+            await AmazonInvocable.ExecuteAction(() => s3Client.PutBucketNotificationAsync(new()
             {
-                BucketName = Bucket,
+                BucketName = BucketName,
                 TopicConfigurations = topics
-            });
+            }));
 
-            await snsClient.SubscribeAsync(new(topicArn, "https",
-                $"{InvocationContext.UriInfo.BridgeServiceUrl}/webhooks/amazons3"));
+            await AmazonInvocable.ExecuteAction(() => snsClient.SubscribeAsync(new(topicArn, "https",
+                $"{InvocationContext.UriInfo.BridgeServiceUrl}/webhooks/amazons3")));
         }
 
         await base.SubscribeAsync(creds, values);
@@ -65,8 +66,8 @@ public abstract class S3WebhookHandler : InvocableBridgeWebhookHandler
     public override async Task UnsubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> creds,
         Dictionary<string, string> values)
     {
-        var s3Client = await AmazonClientFactory.CreateS3BucketClient(creds.ToArray(), Bucket);
-        var bucketNotifications = await s3Client.GetBucketNotificationAsync(Bucket);
+        var s3Client = await AmazonInvocable.CreateBucketClient(BucketName);
+        var bucketNotifications = await AmazonInvocable.ExecuteAction(() => s3Client.GetBucketNotificationAsync(BucketName));
 
         var topics = bucketNotifications.TopicConfigurations;
         var eventToRemove = bucketNotifications.TopicConfigurations
@@ -75,11 +76,11 @@ public abstract class S3WebhookHandler : InvocableBridgeWebhookHandler
         if (eventToRemove is not null)
         {
             topics.Remove(eventToRemove);
-            await s3Client.PutBucketNotificationAsync(new()
+            await AmazonInvocable.ExecuteAction(() => s3Client.PutBucketNotificationAsync(new()
             {
-                BucketName = Bucket,
+                BucketName = BucketName,
                 TopicConfigurations = topics
-            });
+            }));
         }
 
         await base.UnsubscribeAsync(creds, values);
@@ -91,7 +92,7 @@ public abstract class S3WebhookHandler : InvocableBridgeWebhookHandler
         var webhookData = new BridgeRequest
         {
             Event = Event.ToString(),
-            Id = Bucket,
+            Id = BucketName,
             Url = values["payloadUrl"],
         };
 

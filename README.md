@@ -23,7 +23,7 @@ You can find how to get the `Access key` and `Access secret` [here](https://supp
 1. Navigate to Apps, and identify the **Amazon S3** app. You can use search to find it.
 2. Click _Add Connection_.
 3. Name your connection for future reference e.g. 'My X connection'.
-4. Enter the `Access key`, `Access secret` and `Region` for your Amazon S3 account.
+4. Enter the `Access key`, `Access secret` and selection your `Region` for your Amazon S3 account.
 5. Click _Connect_.
 6. Verify that connection was added successfully.
 
@@ -31,13 +31,17 @@ You can find how to get the `Access key` and `Access secret` [here](https://supp
 
 ## Actions
 
-- **List buckets**: Retrieve a list of buckets from your Amazon S3 account. 
-- **List objects in bucket**: Retrieve a list of objects from a specified bucket. 
-- **Get object**: Retrieve a specific object from a bucket.
-- **Upload an object**: Upload a new object to a specified bucket.
-- **Create a bucket**: Create a new bucket in your Amazon S3 account.
-- **Delete a bucket**: Remove a bucket from your Amazon S3 account.
-- **Delete an object**: Remove an object from a bucket.
+### Bucket actions
+
+- **Create bucket**: Creates a new bucket in your Amazon S3 account.
+- **Delete bucket**: Removes a bucket from your Amazon S3 account.
+
+### Object actions
+
+- **Search objects in bucket**: Retrieve a list of objects from a specified bucket. 
+- **Download file**: Retrieve a specific file from a bucket.
+- **Upload file**: Uploads a new file to a specified bucket.
+- **Delete file**: Remove a file from a bucket.
 
 ## Events
 
@@ -49,6 +53,8 @@ You can find how to get the `Access key` and `Access secret` [here](https://supp
 - **On object restore initiated**: This event triggers when the restore of a specific object is initiated.
 - **On object tag added**: This event triggers when a tag is added to a specific object.
 - **On object tag removed**: This event triggers when a tag is removed from a specific object.
+
+> **Note** An 'object' in S3 can be a file or a folder
 
 ## Common issues
 
