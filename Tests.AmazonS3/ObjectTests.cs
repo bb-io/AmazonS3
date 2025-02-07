@@ -1,15 +1,7 @@
 ﻿using Apps.AmazonS3.Actions;
-using Apps.AmazonS3.DataSourceHandlers;
 using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Request.Base;
-using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Files;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Tests.AmazonS3.Base;
 
 namespace Tests.AmazonS3;
