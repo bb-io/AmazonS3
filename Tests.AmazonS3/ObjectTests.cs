@@ -4,6 +4,7 @@ using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Request.Base;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Files;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,7 +52,6 @@ public class ObjectTests : TestBase
     public async Task Upload_object_works()
     {
         var actions = new ObjectActions(InvocationContext, FileManager);
-
         await actions.UploadObject(new UploadObjectModel { BucketName = BucketName, File = new FileReference { Name = TestFileName } });
 
         var result = await actions.ListObjectsInBucket(new BucketRequestModel { BucketName = BucketName }, new ListObjectsRequest { IncludeFoldersInResult = false });
