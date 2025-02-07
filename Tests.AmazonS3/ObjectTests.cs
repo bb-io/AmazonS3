@@ -34,6 +34,20 @@ public class ObjectTests : TestBase
     }
 
     [TestMethod]
+    public async Task Search_objects_with_prefix_works()
+    {
+        var actions = new ObjectActions(InvocationContext, FileManager);
+
+        var result = await actions.ListObjectsInBucket(new BucketRequestModel { BucketName = BucketName }, new ListObjectsRequest { IncludeFoldersInResult = true, Prefix = "fol/" });
+
+        Assert.IsNotNull(result);
+        foreach (var item in result)
+        {
+            Console.WriteLine(item.Key);
+        }
+    }
+
+    [TestMethod]
     public async Task Upload_object_works()
     {
         var actions = new ObjectActions(InvocationContext, FileManager);

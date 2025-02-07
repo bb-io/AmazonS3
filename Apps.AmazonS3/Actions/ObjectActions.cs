@@ -77,7 +77,6 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         var fileStream = await fileManagementClient.DownloadAsync(uploadData.File);
         var request = new PutObjectRequest
         {
-            FilePath = uploadData.FilePath,
             BucketName = uploadData.BucketName,
             Key = uploadData.Key ?? uploadData.File.Name,
             InputStream = fileStream,
