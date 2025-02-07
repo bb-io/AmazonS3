@@ -20,7 +20,7 @@ public class ObjectTests : TestBase
         var result = await actions.ListObjectsInBucket(new BucketRequestModel { BucketName = BucketName }, new ListObjectsRequest { IncludeFoldersInResult = true});
 
         Assert.IsNotNull(result);
-        foreach (var item in result)
+        foreach (var item in result.Objects)
         {
             Console.WriteLine(item.Key);
         }
@@ -34,7 +34,7 @@ public class ObjectTests : TestBase
         var result = await actions.ListObjectsInBucket(new BucketRequestModel { BucketName = BucketName }, new ListObjectsRequest { IncludeFoldersInResult = true, Prefix = "fol/" });
 
         Assert.IsNotNull(result);
-        foreach (var item in result)
+        foreach (var item in result.Objects)
         {
             Console.WriteLine(item.Key);
         }
@@ -48,6 +48,6 @@ public class ObjectTests : TestBase
 
         var result = await actions.ListObjectsInBucket(new BucketRequestModel { BucketName = BucketName }, new ListObjectsRequest { IncludeFoldersInResult = false });
 
-        Assert.IsTrue(result.Any(x => x.Key == TestFileName));
+        Assert.IsTrue(result.Objects.Any(x => x.Key == TestFileName));
     }
 }
