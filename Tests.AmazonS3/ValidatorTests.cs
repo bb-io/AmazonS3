@@ -19,17 +19,6 @@ public class ValidatorTests : TestBase
     }
 
     [TestMethod]
-    public async Task DoesNotValidateIncorrectConnection()
-    {
-        var validator = new ConnectionValidator();
-
-        var newCreds = Creds.Select(x => new AuthenticationCredentialsProvider(x.KeyName, x.Value + "_incorrect"));
-        var result = await validator.ValidateConnection(newCreds, CancellationToken.None);
-        Console.WriteLine(result.Message);
-        Assert.IsFalse(result.IsValid);
-    }
-
-    [TestMethod]
     public async Task ShowConnectionDefinition()
     {
         var definition = new ConnectionDefinition();

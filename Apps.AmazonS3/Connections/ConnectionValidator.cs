@@ -13,6 +13,5 @@ public class ConnectionValidator : IConnectionValidator
         {
             IsValid = true
         });
-        }
     }
 }

@@ -33,24 +33,7 @@ public class AmazonInvocable : BaseInvocable
     {
         var key = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.AccessKey);
         var secret = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.AccessSecret);
-
-        string region;
-        try
-        {
-            var locationResponse = await ExecuteAction(() => S3Client.GetBucketLocationAsync(bucketName));
-            if (locationResponse.Location.Value is null || String.IsNullOrEmpty(locationResponse.Location.Value))
-            { 
-                region = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.Region).Value; 
-            }
-            else
-            { 
-                region = locationResponse.Location.Value; 
-            }
-        }
-        catch (Exception)
-        {
-            region = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.Region).Value;
-        }
+        var region = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.Region).Value;
 
         return new(key.Value, secret.Value, new AmazonS3Config
         {

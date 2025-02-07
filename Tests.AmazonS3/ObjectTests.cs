@@ -39,15 +39,4 @@ public class ObjectTests : TestBase
             Console.WriteLine(item.Key);
         }
     }
-
-    [TestMethod]
-    public async Task Upload_object_works()
-    {
-        var actions = new ObjectActions(InvocationContext, FileManager);
-        await actions.UploadObject(new UploadObjectModel { BucketName = BucketName, File = new FileReference { Name = TestFileName } });
-
-        var result = await actions.ListObjectsInBucket(new BucketRequestModel { BucketName = BucketName }, new ListObjectsRequest { IncludeFoldersInResult = false });
-
-        Assert.IsTrue(result.Any(x => x.Key == TestFileName));
-    }
 }

@@ -70,41 +70,4 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         var file = new FileReference(new(HttpMethod.Get, downloadFileUrl), fileName, response.Headers.ContentType);
         return new(response, file);
     }
-
-    [Action("Upload file", Description = "Upload a file to a bucket")]
-    public async Task UploadObject([ActionParameter] UploadObjectModel uploadData)
-    {
-        var fileStream = await fileManagementClient.DownloadAsync(uploadData.File);
-        var request = new PutObjectRequest
-        {
-            BucketName = uploadData.BucketName,
-            Key = uploadData.Key ?? uploadData.File.Name,
-            InputStream = fileStream,
-            //Headers = { ContentLength = uploadData.File.Size },
-            ContentType = uploadData.File.ContentType
-        };
-
-        if (!string.IsNullOrEmpty(uploadData.ObjectMetadata))
-        {
-            request.Metadata.Add("object", uploadData.ObjectMetadata);
-        }
-
-        var client = await CreateBucketClient(uploadData.BucketName);
-
-        await ExecuteAction(() => client.PutObjectAsync(request));
-    }
-
-    [Action("Delete file", Description = "Delete a file from the S3 bucket.")]
-    public async Task DeleteObject([ActionParameter] ObjectRequestModel deleteData)
-    {
-        var request = new DeleteObjectRequest
-        {
-            BucketName = deleteData.BucketName,
-            Key = deleteData.Key
-        };
-
-        var client = await CreateBucketClient(deleteData.BucketName);
-
-        await ExecuteAction(() => client.DeleteObjectAsync(request));
-    }
 }

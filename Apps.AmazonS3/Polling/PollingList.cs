@@ -1,10 +1,9 @@
 using Amazon.S3.Model;
 using Apps.AmazonS3.Constants;
 using Apps.AmazonS3.Extensions;
-using Apps.AmazonS3.Factories;
-using Apps.AmazonS3.Factories;
 using Apps.AmazonS3.Models.Response;
 using Apps.AmazonS3.Polling.Models;
+using Apps.AmazonS3.Polling.Models.Memory;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Polling;
