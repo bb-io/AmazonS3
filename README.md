@@ -40,7 +40,7 @@ You can find how to get the `Access key` and `Access secret` [here](https://supp
 
 - **Search files in bucket**: Retrieve a list of files from a specified bucket. Optionally search by prefix, e.g. to find files in the folder `/example/folder` input that path in the prefix.
 - **Download file**: Retrieve a specific file from a bucket.
-- **Upload file**: Uploads a new file to a specified bucket. Optionally set a custom key and/or file path.
+- **Upload file**: Uploads a new file to a specified bucket. Use the key optional input to put your file in a folder structure e.g. `/example/folder/<your file name with extension>`.
 - **Delete file**: Remove a file from a bucket.
 
 ## Events

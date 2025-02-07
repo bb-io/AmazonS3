@@ -13,7 +13,4 @@ public record UploadObjectModel : BucketRequestModel
 
     [Display("Key", Description = "Defaults to filename when omitted")]
     public string? Key { get; set; }
-
-    [Display("File path")]
-    public string? FilePath { get; set; }
 }
