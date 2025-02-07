@@ -14,7 +14,7 @@ namespace Apps.AmazonS3.Actions;
 public class ObjectActions (InvocationContext invocationContext, IFileManagementClient fileManagementClient) : AmazonInvocable(invocationContext)
 {
     [Action("Search files in bucket", Description = "Search for objects in a specific bucket")]
-    public async Task<List<BucketObject>> ListObjectsInBucket([ActionParameter] BucketRequestModel bucket, [ActionParameter] Models.Request.ListObjectsRequest input)
+    public async Task<FilesResponse> ListObjectsInBucket([ActionParameter] BucketRequestModel bucket, [ActionParameter] Models.Request.ListObjectsRequest input)
     {
         var request = new ListObjectsV2Request()
         {
@@ -24,7 +24,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
 
         var client = await CreateBucketClient(bucket.BucketName);
 
-        return await ExecuteAction(async () =>
+        var result = await ExecuteAction(async () =>
         {
             var result = new List<BucketObject>();
             await foreach (var s3Object in client.Paginators.ListObjectsV2(request).S3Objects)
@@ -43,6 +43,8 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
             }
             return result;
         });
+
+        return new FilesResponse { Objects = result };
 
     }
 
