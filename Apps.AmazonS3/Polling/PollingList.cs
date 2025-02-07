@@ -1,10 +1,10 @@
 using Amazon.S3.Model;
 using Apps.AmazonS3.Constants;
+using Apps.AmazonS3.Extensions;
+using Apps.AmazonS3.Factories;
 using Apps.AmazonS3.Factories;
 using Apps.AmazonS3.Models.Response;
 using Apps.AmazonS3.Polling.Models;
-using Apps.AmazonS3.Polling.Models.Memory;
-using Apps.AmazonS3.Extensions;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Polling;
@@ -12,12 +12,8 @@ using Blackbird.Applications.Sdk.Common.Polling;
 namespace Apps.AmazonS3.Polling;
 
 [PollingEventList]
-public class PollingList : BaseInvocable
+public class PollingList(InvocationContext invocationContext) : AmazonInvocable(invocationContext)
 {
-    public PollingList(InvocationContext invocationContext) : base(invocationContext)
-    {
-    }
-
     [PollingEvent("On files updated", "On any files updated")]
     public async Task<PollingEventResponse<DateMemory, ListPollingFilesResponse>> OnFilesUpdated(
         PollingEventRequest<DateMemory> request,
@@ -35,9 +31,7 @@ public class PollingList : BaseInvocable
             };
         }
 
-        var client =
-            await AmazonClientFactory.CreateS3BucketClient(
-                InvocationContext.AuthenticationCredentialsProviders.ToArray(), pollingFolder.BucketName);
+        var client = await CreateBucketClient(pollingFolder.BucketName);
 
         if (pollingFolder.Folder == "/")
             pollingFolder.Folder = string.Empty;

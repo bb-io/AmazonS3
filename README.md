@@ -23,7 +23,7 @@ You can find how to get the `Access key` and `Access secret` [here](https://supp
 1. Navigate to Apps, and identify the **Amazon S3** app. You can use search to find it.
 2. Click _Add Connection_.
 3. Name your connection for future reference e.g. 'My X connection'.
-4. Enter the `Access key`, `Access secret` and `Region` for your Amazon S3 account.
+4. Enter the `Access key`, `Access secret` and selection your `Region` for your Amazon S3 account.
 5. Click _Connect_.
 6. Verify that connection was added successfully.
 
@@ -31,13 +31,17 @@ You can find how to get the `Access key` and `Access secret` [here](https://supp
 
 ## Actions
 
-- **List buckets**: Retrieve a list of buckets from your Amazon S3 account. 
-- **List objects in bucket**: Retrieve a list of objects from a specified bucket. 
-- **Get object**: Retrieve a specific object from a bucket.
-- **Upload an object**: Upload a new object to a specified bucket.
-- **Create a bucket**: Create a new bucket in your Amazon S3 account.
-- **Delete a bucket**: Remove a bucket from your Amazon S3 account.
-- **Delete an object**: Remove an object from a bucket.
+### Bucket actions
+
+- **Create bucket**: Creates a new bucket in your Amazon S3 account.
+- **Delete bucket**: Removes a bucket from your Amazon S3 account.
+
+### Object actions
+
+- **Search files in bucket**: Retrieve a list of files from a specified bucket. Optionally search by prefix, e.g. to find files in the folder `/example/folder` input that path in the prefix.
+- **Download file**: Retrieve a specific file from a bucket.
+- **Upload file**: Uploads a new file to a specified bucket. Use the key optional input to put your file in a folder structure e.g. `/example/folder/<your file name with extension>`.
+- **Delete file**: Remove a file from a bucket.
 
 ## Events
 
@@ -52,7 +56,7 @@ You can find how to get the `Access key` and `Access secret` [here](https://supp
 
 ## Common issues
 
-- **Access Denied**: This error occurs when the user does not have the necessary permissions to access the specified resource. Make sure that the user has the required permissions to perform the action. The typical operations that we use in the app are: `Get bucket location`, `List buckets`, `List objects in bucket`, `Get object`, `Upload an object`, `Create a bucket`, `Delete a bucket`, `Delete an object`. It depends on the action that you are trying to perform.
+- **Access Denied**: This error occurs when the user does not have the necessary permissions to access the specified resource. Make sure that the user has the required permissions to perform the action. The typical operations that we use in the app are: `Get bucket location`, `List objects in bucket`, `Get object`, `Upload object`, `Create a bucket`, `Delete a bucket`, `Delete object`. It depends on the action that you are trying to perform.
 
 ## Example
 

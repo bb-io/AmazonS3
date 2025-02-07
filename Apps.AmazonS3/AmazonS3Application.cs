@@ -10,12 +10,6 @@ public class AmazonS3Application : IApplication, ICategoryProvider
         get => [ApplicationCategory.AmazonApps, ApplicationCategory.FileManagementAndStorage, ApplicationCategory.SoftwareDevelopment];
         set { }
     }
-    
-    public string Name
-    {
-        get => "Amazon S3";
-        set { }
-    }
 
     public T GetInstance<T>()
     {
