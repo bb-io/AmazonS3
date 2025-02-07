@@ -8,7 +8,7 @@ public class RecordResponse
 
     [Display("Bucket ARN")] public string BucketArn { get; set; }
 
-    [Display("File name")] public string ObjectKey { get; set; }
+    [Display("Key")] public string ObjectKey { get; set; }
 
     [Display("File ETag")] public string ObjectETag { get; set; }
 }
