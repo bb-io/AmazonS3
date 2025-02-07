@@ -80,7 +80,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
             BucketName = uploadData.BucketName,
             Key = uploadData.Key ?? uploadData.File.Name,
             InputStream = fileStream,
-            Headers = { ContentLength = uploadData.File.Size },
+            //Headers = { ContentLength = uploadData.File.Size },
             ContentType = uploadData.File.ContentType
         };
 
