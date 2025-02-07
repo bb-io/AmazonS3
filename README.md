@@ -38,9 +38,9 @@ You can find how to get the `Access key` and `Access secret` [here](https://supp
 
 ### Object actions
 
-- **Search objects in bucket**: Retrieve a list of objects from a specified bucket. 
+- **Search files in bucket**: Retrieve a list of files from a specified bucket. Optionally search by prefix, e.g. to find files in the folder `/example/folder` input that path in the prefix.
 - **Download file**: Retrieve a specific file from a bucket.
-- **Upload file**: Uploads a new file to a specified bucket.
+- **Upload file**: Uploads a new file to a specified bucket. Optionally set a custom key and/or file path.
 - **Delete file**: Remove a file from a bucket.
 
 ## Events
@@ -54,11 +54,9 @@ You can find how to get the `Access key` and `Access secret` [here](https://supp
 - **On object tag added**: This event triggers when a tag is added to a specific object.
 - **On object tag removed**: This event triggers when a tag is removed from a specific object.
 
-> **Note** An 'object' in S3 can be a file or a folder
-
 ## Common issues
 
-- **Access Denied**: This error occurs when the user does not have the necessary permissions to access the specified resource. Make sure that the user has the required permissions to perform the action. The typical operations that we use in the app are: `Get bucket location`, `List buckets`, `List objects in bucket`, `Get object`, `Upload an object`, `Create a bucket`, `Delete a bucket`, `Delete an object`. It depends on the action that you are trying to perform.
+- **Access Denied**: This error occurs when the user does not have the necessary permissions to access the specified resource. Make sure that the user has the required permissions to perform the action. The typical operations that we use in the app are: `Get bucket location`, `List objects in bucket`, `Get object`, `Upload object`, `Create a bucket`, `Delete a bucket`, `Delete object`. It depends on the action that you are trying to perform.
 
 ## Example
 

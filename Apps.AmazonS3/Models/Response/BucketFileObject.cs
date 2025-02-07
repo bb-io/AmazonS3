@@ -7,7 +7,7 @@ namespace Apps.AmazonS3.Models.Response;
 public record BucketFileObject
 {
     [Display("Bucket name")] public string BucketName { get; init; }
-    [Display("File name")] public string Key { get; init; }
+    [Display("Key")] public string Key { get; init; }
     public string ETag { get; init; }
     [Display("Storage class")] public string? StorageClass { get; init; }
     [Display("Last modified")] public DateTime LastModified { get; init; }

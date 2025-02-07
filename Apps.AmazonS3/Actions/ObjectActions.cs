@@ -13,12 +13,13 @@ namespace Apps.AmazonS3.Actions;
 [ActionList]
 public class ObjectActions (InvocationContext invocationContext, IFileManagementClient fileManagementClient) : AmazonInvocable(invocationContext)
 {
-    [Action("Search objects in bucket", Description = "Search for objects in a specific bucket")]
+    [Action("Search files in bucket", Description = "Search for objects in a specific bucket")]
     public async Task<List<BucketObject>> ListObjectsInBucket([ActionParameter] BucketRequestModel bucket, [ActionParameter] Models.Request.ListObjectsRequest input)
     {
         var request = new ListObjectsV2Request()
         {
-            BucketName = bucket.BucketName
+            BucketName = bucket.BucketName,
+            Prefix = input.Prefix,
         };
 
         var client = await CreateBucketClient(bucket.BucketName);
@@ -76,8 +77,9 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         var fileStream = await fileManagementClient.DownloadAsync(uploadData.File);
         var request = new PutObjectRequest
         {
+            FilePath = uploadData.FilePath,
             BucketName = uploadData.BucketName,
-            Key = uploadData.File.Name,
+            Key = uploadData.Key ?? uploadData.File.Name,
             InputStream = fileStream,
             Headers = { ContentLength = uploadData.File.Size },
             ContentType = uploadData.File.ContentType
