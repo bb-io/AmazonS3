@@ -76,12 +76,14 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
     public async Task UploadObject([ActionParameter] UploadObjectModel uploadData)
     {
         var fileStream = await fileManagementClient.DownloadAsync(uploadData.File);
+
+        var fileLength = fileStream.Length;
         var request = new PutObjectRequest
         {
             BucketName = uploadData.BucketName,
             Key = uploadData.Key ?? uploadData.File.Name,
             InputStream = fileStream,
-            //Headers = { ContentLength = uploadData.File.Size },
+            Headers = { ContentLength = fileLength },
             ContentType = uploadData.File.ContentType
         };
 

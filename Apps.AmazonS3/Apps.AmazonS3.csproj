@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <Product>Amazon S3</Product>
     <Description>Object storage built to retrieve any amount of data from anywhere</Description>
-    <Version>1.3.10</Version>
+    <Version>1.3.11</Version>
     <AssemblyName>Apps.AmazonS3</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
