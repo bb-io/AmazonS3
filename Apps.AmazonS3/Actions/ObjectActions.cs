@@ -76,7 +76,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
     public async Task UploadObject([ActionParameter] UploadObjectModel uploadData)
     {
         var fileStream = await fileManagementClient.DownloadAsync(uploadData.File);
-        using var memoryStream = new MemoryStream());
+        using var memoryStream = new MemoryStream();
 
         await fileStream.CopyToAsync(memoryStream);
         var fileLength = memoryStream.Length;
