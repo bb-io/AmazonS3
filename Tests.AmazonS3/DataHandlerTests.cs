@@ -1,8 +1,5 @@
-using Apps.AmazonS3.Connections;
 using Apps.AmazonS3.DataSourceHandlers;
-using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Dynamic;
-using Newtonsoft.Json;
 using Tests.AmazonS3.Base;
 
 namespace Tests.AmazonS3;

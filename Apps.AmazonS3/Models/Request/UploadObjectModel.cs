@@ -6,7 +6,7 @@ namespace Apps.AmazonS3.Models.Request;
 
 public record UploadObjectModel : BucketRequestModel
 {
-    public FileReference File { get; set; }
+    public FileReference File { get; set; } = new();
 
     [Display("File metadata")]
     public string? ObjectMetadata { get; set; }

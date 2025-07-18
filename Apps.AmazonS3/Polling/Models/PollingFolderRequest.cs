@@ -10,11 +10,11 @@ public class PollingFolderRequest
 {
     [Display("Bucket name")] 
     [DataSource(typeof(BucketDataHandler))]
-    public string BucketName { get; set; }
-    
+    public string BucketName { get; set; } = string.Empty;
+
     [Display("Folder")]
     [DataSource(typeof(FolderDataHandler))]
-    public string? Folder { get; set; }   
+    public string? Folder { get; set; }
     
     [Display("Folder relation trigger")]
     [StaticDataSource(typeof(FolderRelationTriggerDataHandler))]

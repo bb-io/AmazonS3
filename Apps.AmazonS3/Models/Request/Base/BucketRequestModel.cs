@@ -8,5 +8,5 @@ public record BucketRequestModel
 {
     [Display("Bucket name")] 
     [DataSource(typeof(BucketDataHandler))]
-    public string BucketName { get; set; }
+    public string BucketName { get; set; } = string.Empty;
 }

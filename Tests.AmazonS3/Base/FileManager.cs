@@ -21,7 +21,7 @@ public class FileManager(string folderLocation) : IFileManagementClient
     public Task<FileReference> UploadAsync(Stream stream, string contentType, string fileName)
     {
         var path = Path.Combine(folderLocation, @$"Output\{fileName}");
-        new FileInfo(path).Directory.Create();
+        new FileInfo(path)?.Directory?.Create();
         using (var fileStream = File.Create(path))
         {
             stream.CopyTo(fileStream);

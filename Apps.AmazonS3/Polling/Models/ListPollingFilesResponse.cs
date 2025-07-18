@@ -4,5 +4,5 @@ namespace Apps.AmazonS3.Polling.Models;
 
 public class ListPollingFilesResponse
 {
-    public IEnumerable<BucketObject> Files { get; set; }
+    public IEnumerable<BucketObject> Files { get; set; } = [];
 }
