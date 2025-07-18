@@ -8,10 +8,10 @@ public class FolderRelationTriggerDataHandler : IStaticDataSourceItemHandler
 {
     public IEnumerable<DataSourceItem> GetData()
     {
-        return new List<DataSourceItem>()
-        {
-            new DataSourceItem( FolderRelationTrigger.Children, "Children" ),
-            new DataSourceItem( FolderRelationTrigger.Descendants, "Descendants" ),
-        };
+        return
+        [
+            new( FolderRelationTrigger.Children, "Children" ),
+            new( FolderRelationTrigger.Descendants, "Descendants" ),
+        ];
     }
 }

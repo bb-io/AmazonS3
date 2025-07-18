@@ -33,12 +33,9 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
                 {
                     result.Add(new BucketObject(s3Object));
                 }
-                else
+                else if(!s3Object.Key.EndsWith('/'))
                 {
-                    if (!s3Object.Key.EndsWith("/"))
-                    {
-                        result.Add(new BucketObject(s3Object));
-                    }
+                    result.Add(new BucketObject(s3Object));
                 }
             }
             return result;
@@ -66,7 +63,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
             Key = objectData.Key,
             Expires = DateTime.Now.AddHours(1)
         });
-        string fileName = response.Key.Contains("/") ? response.Key.Substring(response.Key.LastIndexOf('/') + 1) : response.Key;
+        string fileName = response.Key.Contains('/') ? response.Key.Substring(response.Key.LastIndexOf('/') + 1) : response.Key;
 
         var file = new FileReference(new(HttpMethod.Get, downloadFileUrl), fileName, response.Headers.ContentType);
         return new(response, file);

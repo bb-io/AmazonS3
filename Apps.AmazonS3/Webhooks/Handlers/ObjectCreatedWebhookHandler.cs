@@ -6,12 +6,8 @@ using EventType = Amazon.S3.EventType;
 
 namespace Apps.AmazonS3.Webhooks.Handlers;
 
-public class ObjectCreatedWebhookHandler : S3WebhookHandler
+public class ObjectCreatedWebhookHandler(InvocationContext invocationContext, [WebhookParameter] BucketRequestModel bucketRequest)
+    : S3WebhookHandler(invocationContext, bucketRequest)
 {
     protected override EventType Event => EventType.ObjectCreatedAll;
-
-    public ObjectCreatedWebhookHandler(InvocationContext invocationContext, [WebhookParameter] BucketRequestModel bucketRequest) : base(
-        invocationContext, bucketRequest)
-    {
-    }
 }

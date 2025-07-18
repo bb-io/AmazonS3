@@ -6,13 +6,8 @@ using EventType = Amazon.S3.EventType;
 
 namespace Apps.AmazonS3.Webhooks.Handlers;
 
-public class ObjectRestoreExpiredWebhookHandler : S3WebhookHandler
+public class ObjectRestoreExpiredWebhookHandler(InvocationContext invocationContext, [WebhookParameter] BucketRequestModel bucketRequest)
+    : S3WebhookHandler(invocationContext, bucketRequest)
 {
     protected override EventType Event => EventType.S3ObjectRestoreDelete;
-
-    public ObjectRestoreExpiredWebhookHandler(InvocationContext invocationContext,
-        [WebhookParameter] BucketRequestModel bucketRequest) :
-        base(invocationContext, bucketRequest)
-    {
-    }
 }

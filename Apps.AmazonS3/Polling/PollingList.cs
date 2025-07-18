@@ -22,10 +22,7 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
             return new()
             {
                 FlyBird = false,
-                Memory = new()
-                {
-                    LastInteractionDate = DateTime.UtcNow
-                }
+                Memory = new() { LastInteractionDate = DateTime.UtcNow }
             };
         }
 
@@ -47,34 +44,27 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
         {
             if (s3Object.LastModified > request.Memory.LastInteractionDate && s3Object.Size != default &&
                 IsObjectInFolder(s3Object, pollingFolder))
+            {
                 result.Add(s3Object);
+            }
         }
 
         if (result.Count == 0)
             return new()
             {
                 FlyBird = false,
-                Memory = new()
-                {
-                    LastInteractionDate = DateTime.UtcNow
-                }
+                Memory = new() { LastInteractionDate = DateTime.UtcNow }
             };
 
         return new()
         {
             FlyBird = true,
-            Memory = new()
-            {
-                LastInteractionDate = DateTime.UtcNow
-            },
-            Result = new()
-            {
-                Files = result.Select(x => new BucketObject(x))
-            }
+            Memory = new() { LastInteractionDate = DateTime.UtcNow },
+            Result = new() { Files = result.Select(x => new BucketObject(x)) }
         };
     }
 
-    private bool IsObjectInFolder(S3Object s3Object, PollingFolderRequest folder)
+    private static bool IsObjectInFolder(S3Object s3Object, PollingFolderRequest folder)
     {
         if (folder.Folder is null)
             return true;

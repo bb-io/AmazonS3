@@ -14,18 +14,11 @@ public class ConnectionValidator : IConnectionValidator
             var invocable = new AmazonInvocable(new InvocationContext { AuthenticationCredentialsProviders = authProviders });
             var result = await AmazonInvocable.ExecuteAction(() => invocable.S3Client.ListBucketsAsync(cancellationToken));
 
-            return new()
-            {
-                IsValid = true
-            };
+            return new() { IsValid = true };
         }
         catch (Exception ex)
         {
-            return new()
-            {
-                IsValid = false,
-                Message = ex.Message
-            };
+            return new() { IsValid = false, Message = ex.Message };
         }
     }
 }

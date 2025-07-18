@@ -6,15 +6,10 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.AmazonS3.DataSourceHandlers;
 
-public class FolderDataHandler: AmazonInvocable, IAsyncDataSourceItemHandler
+public class FolderDataHandler(InvocationContext invocationContext, [ActionParameter] PollingFolderRequest pollingFolderRequest)
+    : AmazonInvocable(invocationContext), IAsyncDataSourceItemHandler
 {
-    private readonly PollingFolderRequest _pollingFolderRequest;
-
-    public FolderDataHandler(InvocationContext invocationContext, [ActionParameter] PollingFolderRequest pollingFolderRequest) : base(
-        invocationContext)
-    {
-        _pollingFolderRequest = pollingFolderRequest;
-    }
+    private readonly PollingFolderRequest _pollingFolderRequest = pollingFolderRequest;
 
     public async Task<IEnumerable<DataSourceItem>> GetDataAsync(
         DataSourceContext context,

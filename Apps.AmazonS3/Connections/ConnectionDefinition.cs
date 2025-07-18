@@ -7,20 +7,20 @@ namespace Apps.AmazonS3.Connections;
 
 public class ConnectionDefinition : IConnectionDefinition
 {
-    public IEnumerable<ConnectionPropertyGroup> ConnectionPropertyGroups => new List<ConnectionPropertyGroup>
-    {
+    public IEnumerable<ConnectionPropertyGroup> ConnectionPropertyGroups =>
+    [
         new()
         {
             Name = "Developer API key",
             AuthenticationType = ConnectionAuthenticationType.Undefined,
-            ConnectionProperties = new List<ConnectionProperty>
-            {
+            ConnectionProperties =
+            [
                 new(CredNames.AccessKey) { DisplayName = "Access key" },
                 new(CredNames.AccessSecret) { DisplayName = "Access secret", Sensitive = true },
                 new(CredNames.Region) { DisplayName = "Region", DataItems = RegionEndpoint.EnumerableAllRegions.Select(x => new ConnectionPropertyValue(x.SystemName, x.SystemName))  }
-            }
+            ]
         }
-    };
+    ];
 
     public IEnumerable<AuthenticationCredentialsProvider> CreateAuthorizationCredentialsProviders(Dictionary<string, string> values)
     {
