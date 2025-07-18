@@ -1,13 +1,14 @@
 using Apps.AmazonS3.Webhooks.Handlers;
 using Apps.AmazonS3.Webhooks.Models.Payload;
 using Apps.AmazonS3.Webhooks.Models.Response;
+using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Webhooks;
 using Newtonsoft.Json;
 
 namespace Apps.AmazonS3.Webhooks;
 
 [WebhookList]
-public class WebhookList
+public class WebhookList(InvocationContext invocationContext) : AmazonInvocable(invocationContext)
 {
     [Webhook("On object created", typeof(ObjectCreatedWebhookHandler), Description = "On object created in the bucket")]
     public Task<WebhookResponse<S3WebhookResponse>> OnObjectCreated(WebhookRequest request)
@@ -50,24 +51,37 @@ public class WebhookList
 
     private Task<WebhookResponse<S3WebhookResponse>> HandleWebhook(WebhookRequest webhookRequest)
     {
-        var payload = webhookRequest.Body.ToString();
-        ArgumentException.ThrowIfNullOrEmpty(payload, nameof(webhookRequest.Body));
-
-        var result = JsonConvert.DeserializeObject<S3WebhookPayload>(payload)!;
-
-        return Task.FromResult(new WebhookResponse<S3WebhookResponse>
+        try
         {
-            HttpResponseMessage = null,
-            Result = new()
+            var payload = webhookRequest.Body.ToString();
+            ArgumentException.ThrowIfNullOrEmpty(payload, nameof(webhookRequest.Body));
+
+            var result = JsonConvert.DeserializeObject<S3WebhookPayload>(payload)!;
+
+            return Task.FromResult(new WebhookResponse<S3WebhookResponse>
             {
-                Records = result.Records.Select(x => new RecordResponse()
+                HttpResponseMessage = null,
+                Result = new()
                 {
-                    BucketName = x.S3.Bucket.Name,
-                    BucketArn = x.S3.Bucket.Arn,
-                    ObjectKey = x.S3.Object.Key,
-                    ObjectETag = x.S3.Object.ETag
-                })
-            }
-        });
+                    Records = result.Records.Select(x => new RecordResponse()
+                    {
+                        BucketName = x.S3.Bucket.Name,
+                        BucketArn = x.S3.Bucket.Arn,
+                        ObjectKey = x.S3.Object.Key,
+                        ObjectETag = x.S3.Object.ETag
+                    })
+                }
+            });
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = "[AmazonS3 webhook] Got an error while processing the webhook request. "
+                + $"Request method: {webhookRequest.HttpMethod?.Method}"
+                + $"Request body: {webhookRequest.Body}"
+                + $"Exception message: {ex.Message}";
+
+            InvocationContext.Logger?.LogError(errorMessage, [ex.Message]);
+            throw;
+        }
     }
 }
