@@ -6,7 +6,7 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.AmazonS3.Actions;
 
-[ActionList]
+[ActionList("Buckets")]
 public class BucketActions(InvocationContext invocationContext) : AmazonInvocable(invocationContext)
 {
     [Action("Create bucket", Description = "Create an S3 bucket.")]

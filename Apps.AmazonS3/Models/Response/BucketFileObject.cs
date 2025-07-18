@@ -1,11 +1,14 @@
 using Amazon.S3.Model;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Files;
+using Blackbird.Applications.SDK.Blueprints.Interfaces.FileStorage;
 
 namespace Apps.AmazonS3.Models.Response;
 
-public record BucketFileObject
+public record BucketFileObject : IDownloadFileOutput
 {
+    public FileReference File { get; set; }
+
     [Display("Bucket name")]
     public string BucketName { get; init; }
 
@@ -19,8 +22,6 @@ public record BucketFileObject
 
     [Display("Last modified")]
     public DateTime LastModified { get; init; }
-
-    public FileReference File { get; set; }
 
     public BucketFileObject(GetObjectResponse s3Object, FileReference file)
     {

@@ -18,7 +18,7 @@ public class ObjectTests : TestBase
 
         var result = await actions.ListObjectsInBucket(
             new BucketRequestModel { BucketName = TestBucketName },
-            new ListObjectsRequest { IncludeFoldersInResult = true});
+            new SearchFilesRequest { });
 
         Assert.IsNotNull(result);
         foreach (var item in result.Objects)
@@ -34,7 +34,7 @@ public class ObjectTests : TestBase
 
         var result = await actions.ListObjectsInBucket(
             new BucketRequestModel { BucketName = TestBucketName },
-            new ListObjectsRequest { IncludeFoldersInResult = true, Prefix = "fol/" });
+            new SearchFilesRequest { FolderID = "fol/" });
 
         Assert.IsNotNull(result);
         foreach (var item in result.Objects)
@@ -47,7 +47,7 @@ public class ObjectTests : TestBase
     public async Task Upload_object_works()
     {
         var actions = new ObjectActions(InvocationContext, FileManager);
-        await actions.UploadObject(new UploadObjectModel
+        await actions.UploadObject(new UploadFileInput
         {
             BucketName = TestBucketName,
             File = new FileReference { Name = TestFileName }
@@ -55,7 +55,7 @@ public class ObjectTests : TestBase
 
         var result = await actions.ListObjectsInBucket(
             new BucketRequestModel { BucketName = TestBucketName },
-            new ListObjectsRequest { IncludeFoldersInResult = false });
+            new SearchFilesRequest { });
 
         Assert.IsTrue(result.Objects.Any(x => x.Key == TestFileName));
     }

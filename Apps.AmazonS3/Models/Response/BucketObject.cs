@@ -9,7 +9,7 @@ public record BucketObject
     public string BucketName { get; init; }
 
     [Display("Key")]
-    public string Key { get; init; }
+    public string Key { get; set; }
 
     public string ETag { get; init; }
 

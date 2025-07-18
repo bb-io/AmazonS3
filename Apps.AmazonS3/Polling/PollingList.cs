@@ -6,16 +6,19 @@ using Apps.AmazonS3.Polling.Models;
 using Apps.AmazonS3.Polling.Models.Memory;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Polling;
+using Blackbird.Applications.Sdk.Common.Webhooks;
+using Blackbird.Applications.SDK.Blueprints;
 
 namespace Apps.AmazonS3.Polling;
 
 [PollingEventList]
 public class PollingList(InvocationContext invocationContext) : AmazonInvocable(invocationContext)
 {
-    [PollingEvent("On files updated", "On any files updated")]
-    public async Task<PollingEventResponse<DateMemory, ListPollingFilesResponse>> OnFilesUpdated(
+    [BlueprintEventDefinition(BlueprintEvent.FilesCreatedOrUpdated)]
+    [PollingEvent("On files updated", "On any file created or updated")]
+    public async Task<PollingEventResponse<DateMemory, FilesResponse>> OnFilesUpdated(
         PollingEventRequest<DateMemory> request,
-        [PollingEventParameter] PollingFolderRequest pollingFolder)
+        [PollingEventParameter] PollingFolderInput input)
     {
         if (request.Memory == null)
         {
@@ -26,27 +29,45 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
             };
         }
 
-        var client = await CreateBucketClient(pollingFolder.BucketName);
+        if (input.FolderId == "/")
+            input.FolderId = string.Empty;
 
-        if (pollingFolder.Folder == "/")
-            pollingFolder.Folder = string.Empty;
-        
-        var objects = client.Paginators.ListObjectsV2(new()
-        {
-            BucketName = pollingFolder.BucketName,
-            Prefix = string.IsNullOrWhiteSpace(pollingFolder.Folder)
-                ? string.Empty
-                : pollingFolder.Folder
-        });
         var result = new List<S3Object>();
 
-        await foreach (var s3Object in objects.S3Objects)
+        try
         {
-            if (s3Object.LastModified > request.Memory.LastInteractionDate && s3Object.Size != default &&
-                IsObjectInFolder(s3Object, pollingFolder))
+            var client = await CreateBucketClient(input.BucketName);
+            var objects = client.Paginators.ListObjectsV2(new()
             {
+                BucketName = input.BucketName,
+                Prefix = string.IsNullOrWhiteSpace(input.FolderId)
+                    ? string.Empty
+                    : input.FolderId
+            });
+
+
+            await foreach (var s3Object in objects.S3Objects)
+            {
+                if (request.Memory.LastInteractionDate > s3Object.LastModified)
+                    continue;
+
+                if (s3Object.Size == default)
+                    continue;
+
+                if (!IsObjectInFolder(s3Object, input))
+                    continue;
+
                 result.Add(s3Object);
             }
+        }
+        catch (Exception ex)
+        {
+            var errorMessage = "[AmazonS3 polling] Got an error while polling. "
+                + $"Method: OnFilesUpdated"
+                + $"Exception message: {ex.Message}";
+
+            InvocationContext.Logger?.LogError(errorMessage, [ex.Message]);
+            throw;
         }
 
         if (result.Count == 0)
@@ -60,21 +81,21 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
         {
             FlyBird = true,
             Memory = new() { LastInteractionDate = DateTime.UtcNow },
-            Result = new() { Files = result.Select(x => new BucketObject(x)) }
+            Result = new() { Objects = result.Select(x => new FileObject(x)) }
         };
     }
 
-    private static bool IsObjectInFolder(S3Object s3Object, PollingFolderRequest folder)
+    private static bool IsObjectInFolder(S3Object s3Object, PollingFolderInput input)
     {
-        if (folder.Folder is null)
+        if (input.FolderId is null)
             return true;
 
-        if ((string.IsNullOrWhiteSpace(folder.FolderRelationTrigger) ||
-             folder.FolderRelationTrigger == FolderRelationTrigger.Descendants) && s3Object.Key.Contains(folder.Folder))
+        if ((string.IsNullOrWhiteSpace(input.FolderRelationTrigger) ||
+             input.FolderRelationTrigger == FolderRelationTrigger.Descendants) && s3Object.Key.Contains(input.FolderId))
             return true;
 
-        if (folder.FolderRelationTrigger == FolderRelationTrigger.Children &&
-            s3Object.GetParentFolder() == folder.Folder.Trim('/').Split('/').Last())
+        if (input.FolderRelationTrigger == FolderRelationTrigger.Children &&
+            s3Object.GetParentFolder() == input.FolderId.Trim('/').Split('/').Last())
             return true;
 
         return false;

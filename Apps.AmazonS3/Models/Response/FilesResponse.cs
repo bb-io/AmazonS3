@@ -4,5 +4,5 @@ namespace Apps.AmazonS3.Models.Response;
 public class FilesResponse
 {
     [Display("Files")]
-    public IEnumerable<BucketObject> Objects { get; set; } = [];
+    public IEnumerable<FileObject> Objects { get; set; } = [];
 }
