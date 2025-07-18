@@ -5,11 +5,19 @@ namespace Apps.AmazonS3.Models.Response;
 
 public record BucketObject
 {
-    [Display("Bucket name")] public string BucketName { get; init; }
-    [Display("Key")] public string Key { get; init; }
+    [Display("Bucket name")]
+    public string BucketName { get; init; }
+
+    [Display("Key")]
+    public string Key { get; init; }
+
     public string ETag { get; init; }
-    [Display("Storage class")] public string? StorageClass { get; init; }
-    [Display("Last modified")] public DateTime LastModified { get; init; }
+
+    [Display("Storage class")]
+    public string? StorageClass { get; init; }
+
+    [Display("Last modified")]
+    public DateTime LastModified { get; init; }
 
     public BucketObject(S3Object s3Object)
     {
@@ -19,4 +27,4 @@ public record BucketObject
         BucketName = s3Object.BucketName;
         Key = s3Object.Key;
     }
-};
+}

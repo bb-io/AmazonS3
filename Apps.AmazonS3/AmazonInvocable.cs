@@ -7,7 +7,6 @@ using Blackbird.Applications.Sdk.Common;
 using Amazon;
 using Amazon.SimpleNotificationService;
 using Blackbird.Applications.Sdk.Utils.Extensions.Sdk;
-using Blackbird.Applications.Sdk.Common.Authentication;
 
 namespace Apps.AmazonS3;
 public class AmazonInvocable : BaseInvocable

@@ -1,10 +1,5 @@
 ﻿using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Tests.AmazonS3.Base;
 public class FileManager(string folderLocation) : IFileManagementClient
