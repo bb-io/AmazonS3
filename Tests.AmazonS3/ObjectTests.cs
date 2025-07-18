@@ -21,9 +21,9 @@ public class ObjectTests : TestBase
             new SearchFilesRequest { });
 
         Assert.IsNotNull(result);
-        foreach (var item in result.Objects)
+        foreach (var item in result.Files)
         {
-            Console.WriteLine(item.Key);
+            Console.WriteLine(item.FileId);
         }
     }
 
@@ -37,9 +37,9 @@ public class ObjectTests : TestBase
             new SearchFilesRequest { FolderID = "fol/" });
 
         Assert.IsNotNull(result);
-        foreach (var item in result.Objects)
+        foreach (var item in result.Files)
         {
-            Console.WriteLine(item.Key);
+            Console.WriteLine(item.FileId);
         }
     }
 
@@ -57,6 +57,6 @@ public class ObjectTests : TestBase
             new BucketRequestModel { BucketName = TestBucketName },
             new SearchFilesRequest { });
 
-        Assert.IsTrue(result.Objects.Any(x => x.Key == TestFileName));
+        Assert.IsTrue(result.Files.Any(x => x.FileId == TestFileName));
     }
 }

@@ -7,11 +7,12 @@ namespace Apps.AmazonS3.Models.Request;
 
 public record FolderRequest : BucketRequestModel
 {
-    [Display("Folder ID (folder name or full path)")]
+    [Display("Folder ID (prefix)")]
     [DataSource(typeof(FolderDataHandler))]
     public string FolderId { get; set; } = string.Empty;
 
-    [Display("Parent folder ID (prefix, will be combined with folder ID if provided)")]
+    [Display("Parent folder ID (prefix, will be combined with folder ID)")]
+    [DataSource(typeof(FolderDataHandler))]
     public string? ParentFolderId { get; set; } = string.Empty;
 
     public string GetKey()

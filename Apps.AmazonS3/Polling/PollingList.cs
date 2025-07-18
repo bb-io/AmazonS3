@@ -81,7 +81,7 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
         {
             FlyBird = true,
             Memory = new() { LastInteractionDate = DateTime.UtcNow },
-            Result = new() { Objects = result.Select(x => new FileObject(x)) }
+            Result = new() { Files = result.Select(x => new FileObject(x)) }
         };
     }
 

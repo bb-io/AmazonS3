@@ -12,7 +12,7 @@ public record UploadFileInput : BucketRequestModel, IUploadFileInput
     public FileReference File { get; set; } = new();
 
     [Display("File ID (key)", Description = "Defaults to filename when omitted, can include full path")]
-    public string? Key { get; set; }
+    public string? FileId { get; set; }
 
     [Display("Folder ID (prefix)", Description = "Defaults to bucket root when omitted")]
     [DataSource(typeof(FolderDataHandler))]

@@ -36,23 +36,33 @@ You can find how to get the `Access key` and `Access secret` [here](https://supp
 - **Create bucket**: Creates a new bucket in your Amazon S3 account.
 - **Delete bucket**: Removes a bucket from your Amazon S3 account.
 
-### Object actions
+### File actions
 
-- **Search files in bucket**: Retrieve a list of files from a specified bucket. Optionally search by prefix, e.g. to find files in the folder `/example/folder` input that path in the prefix.
+Single files actions are using File ID or "key" to locale specific object in S3 bucket. Use a full path there, for example: `example/folder/your_file__name__with.extension`
+
+- **Search files**: Retrieve a list of files from a specified bucket. Optionally search by Folder ID (prefix), e.g. specify a full folder path `example/folder/` to find all files.
 - **Download file**: Retrieve a specific file from a bucket.
-- **Upload file**: Uploads a new file to a specified bucket. Use the key optional input to put your file in a folder structure e.g. `/example/folder/<your file name with extension>`.
+- **Upload file**: Uploads a new file to a specified bucket.
 - **Delete file**: Remove a file from a bucket.
+
+### Folder actions
+
+Single folder actions are using Folder ID or "prefix" to locale specific object in S3 bucket. Use a full path there, for example: `example/folder/`. Notice, that folders in S3 should always end with a slash (`/`) character.
+
+- **Create folder**: Creates a new folder in a specified bucket. Use the key optional input to create a folder structure e.g. `example/folder_to_create/`.
+- **Delete folder**: Removes a folder from a specified bucket. Use the key optional input to specify the folder structure e.g. `example/folder/subfolder_to_delete/`.
 
 ## Events
 
-- **On object created**: This event triggers when any object is created in your buckets.
-- **On object delete marker created**: This event triggers when a delete marker is created for specific objects in your buckets.
-- **On object deleted**: This event triggers when any object is permanently deleted from your buckets.
-- **On object restore completed**: This event triggers when the restore of a specific object is completed.
-- **On object restore expired**: This event triggers when the restore of a specific object has expired.
-- **On object restore initiated**: This event triggers when the restore of a specific object is initiated.
-- **On object tag added**: This event triggers when a tag is added to a specific object.
-- **On object tag removed**: This event triggers when a tag is removed from a specific object.
+- **On files updated**: This event triggers when a file (object) is changed in any way. Could be filtered by a folder.
+- **On file or folder created**: This event triggers when any object is created in your buckets.
+- **On file or folder delete marker created**: This event triggers when a delete marker is created for specific objects in your buckets.
+- **On file or folder deleted**: This event triggers when any object is permanently deleted from your buckets.
+- **On file or folder restore completed**: This event triggers when the restore of a specific object is completed.
+- **On file or folder restore expired**: This event triggers when the restore of a specific object has expired.
+- **On file or folder restore initiated**: This event triggers when the restore of a specific object is initiated.
+- **On file or folder tag added**: This event triggers when a tag is added to a specific object.
+- **On file or folder tag removed**: This event triggers when a tag is removed from a specific object.
 
 ## Common issues
 
@@ -64,11 +74,7 @@ Here is an example of how you can use the Amazon S3 app in a workflow:
 
 ![example](image/README/example.png)
 
-In this example, the workflow starts with the **On object created** event, which triggers when any object is created in your buckets. Then, the workflow uses the **Get object** action to retrieve the object that was created. In the next step we translate the object via `DeepL` and then upload the translated object back to the Amazon S3 bucket.
-
-## Eggs
-
-Check downloadable workflow prototypes featuring this app that you can import to your Nests [here](https://docs.blackbird.io/eggs/storage-to-mt/). 
+In this example, the workflow starts with the **On files updated** event, which triggers when a file is created or changed in your buckets. Then, the workflow uses the **Download file** action to retrieve the file. In the next step we translate the object via `DeepL` and then upload the translated file back to the Amazon S3 bucket.
 
 ## Feedback
 

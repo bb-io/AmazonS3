@@ -40,7 +40,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
             return result;
         });
 
-        return new FilesResponse { Objects = result };
+        return new FilesResponse { Files = result };
     }
 
     [BlueprintActionDefinition(BlueprintAction.DownloadFile)]
@@ -54,16 +54,16 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         };
 
         var client = await CreateBucketClient(input.BucketName);
-
         var response = await ExecuteAction(() => client.GetObjectAsync(request));
+
+        var fileName = response.Key.Contains('/') ? response.Key.Substring(response.Key.LastIndexOf('/') + 1) : response.Key;
 
         var downloadFileUrl = client.GetPreSignedURL(new()
         {
             BucketName = input.BucketName,
             Key = input.FileId,
             Expires = DateTime.Now.AddHours(1)
-        });
-        string fileName = response.Key.Contains('/') ? response.Key.Substring(response.Key.LastIndexOf('/') + 1) : response.Key;
+        });        
 
         var file = new FileReference(new(HttpMethod.Get, downloadFileUrl), fileName, response.Headers.ContentType);
         return new(response, file);
@@ -77,10 +77,9 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         using var memoryStream = new MemoryStream();
 
         await fileStream.CopyToAsync(memoryStream);
-        var fileLength = memoryStream.Length;
 
         var folderId = input.FolderId?.TrimEnd('/') ?? string.Empty;
-        var fileId = input.Key?.TrimStart('/') ?? input.File.Name;
+        var fileId = input.FileId?.TrimStart('/') ?? input.File.Name;
         var keyParts = new List<string> { folderId, fileId }.Where(part => !string.IsNullOrEmpty(part));
         var key = string.Join('/', keyParts).TrimStart('/');
 
@@ -89,7 +88,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
             BucketName = input.BucketName,
             Key = key,
             InputStream = memoryStream,
-            Headers = { ContentLength = fileLength },
+            Headers = { ContentLength = memoryStream.Length },
             ContentType = input.File.ContentType
         };
 
@@ -99,7 +98,6 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         }
 
         var client = await CreateBucketClient(input.BucketName);
-
         await ExecuteAction(() => client.PutObjectAsync(request));
     }
 
@@ -113,7 +111,6 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         };
 
         var client = await CreateBucketClient(deleteData.BucketName);
-
         await ExecuteAction(() => client.DeleteObjectAsync(request));
     }
 }
