@@ -11,6 +11,8 @@ public class TestBase
 
     public FileManager FileManager { get; set; }
 
+    public string TestBucketName;
+
     public TestBase()
     {
         var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
@@ -26,5 +28,8 @@ public class TestBase
         };
 
         FileManager = new FileManager(projectDirectory);
+
+        TestBucketName = config["TestBucketName"]
+            ?? throw new Exception("Test bucket name not found.");
     }
 }

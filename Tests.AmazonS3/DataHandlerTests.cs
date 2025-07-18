@@ -23,7 +23,7 @@ public class DataHandlerTests : TestBase
     [TestMethod]
     public async Task FolderDataHandler_returns_items()
     {
-        var pollingFolderRequest = new PollingFolderRequest { BucketName = "myuniquebucketfortesting" };
+        var pollingFolderRequest = new PollingFolderRequest { BucketName = TestBucketName };
         var handler = new FolderDataHandler(InvocationContext, pollingFolderRequest);
 
         var result = await handler.GetDataAsync(new DataSourceContext { }, CancellationToken.None);

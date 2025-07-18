@@ -9,7 +9,7 @@ namespace Tests.AmazonS3;
 [TestClass]
 public class BucketTests : TestBase
 {
-    public const string BucketName = "blackbird-test-bucket-name";
+    public string BucketName = Guid.NewGuid().ToString();
 
     [TestMethod]
     public async Task Create_and_delete_bucket_works()
