@@ -13,6 +13,7 @@ public class DataHandlerTests : TestBase
     {
         var handler = new BucketDataHandler(InvocationContext);
         var result = await handler.GetDataAsync(new DataSourceContext { }, CancellationToken.None);
+
         Assert.IsNotNull(result);
         foreach (var item in result)
         {
@@ -24,8 +25,8 @@ public class DataHandlerTests : TestBase
     public async Task FolderDataHandler_returns_items()
     {
         var pollingFolderRequest = new PollingFolderRequest { BucketName = TestBucketName };
-        var handler = new FolderDataHandler(InvocationContext, pollingFolderRequest);
 
+        var handler = new FolderDataHandler(InvocationContext, pollingFolderRequest);
         var result = await handler.GetDataAsync(new DataSourceContext { }, CancellationToken.None);
 
         Assert.IsNotNull(result);

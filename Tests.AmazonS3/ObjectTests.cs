@@ -16,7 +16,9 @@ public class ObjectTests : TestBase
     {
         var actions = new ObjectActions(InvocationContext, FileManager);
 
-        var result = await actions.ListObjectsInBucket(new BucketRequestModel { BucketName = TestBucketName }, new ListObjectsRequest { IncludeFoldersInResult = true});
+        var result = await actions.ListObjectsInBucket(
+            new BucketRequestModel { BucketName = TestBucketName },
+            new ListObjectsRequest { IncludeFoldersInResult = true});
 
         Assert.IsNotNull(result);
         foreach (var item in result.Objects)
@@ -30,7 +32,9 @@ public class ObjectTests : TestBase
     {
         var actions = new ObjectActions(InvocationContext, FileManager);
 
-        var result = await actions.ListObjectsInBucket(new BucketRequestModel { BucketName = TestBucketName }, new ListObjectsRequest { IncludeFoldersInResult = true, Prefix = "fol/" });
+        var result = await actions.ListObjectsInBucket(
+            new BucketRequestModel { BucketName = TestBucketName },
+            new ListObjectsRequest { IncludeFoldersInResult = true, Prefix = "fol/" });
 
         Assert.IsNotNull(result);
         foreach (var item in result.Objects)
@@ -43,9 +47,15 @@ public class ObjectTests : TestBase
     public async Task Upload_object_works()
     {
         var actions = new ObjectActions(InvocationContext, FileManager);
-        await actions.UploadObject(new UploadObjectModel { BucketName = TestBucketName, File = new FileReference { Name = TestFileName } });
+        await actions.UploadObject(new UploadObjectModel
+        {
+            BucketName = TestBucketName,
+            File = new FileReference { Name = TestFileName }
+        });
 
-        var result = await actions.ListObjectsInBucket(new BucketRequestModel { BucketName = TestBucketName }, new ListObjectsRequest { IncludeFoldersInResult = false });
+        var result = await actions.ListObjectsInBucket(
+            new BucketRequestModel { BucketName = TestBucketName },
+            new ListObjectsRequest { IncludeFoldersInResult = false });
 
         Assert.IsTrue(result.Objects.Any(x => x.Key == TestFileName));
     }
