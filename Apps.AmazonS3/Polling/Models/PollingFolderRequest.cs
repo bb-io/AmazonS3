@@ -5,7 +5,7 @@ using Blackbird.Applications.Sdk.Common.Dictionaries;
 
 namespace Apps.AmazonS3.Polling.Models;
 
-public record PollingFolderInput : FolderRequest
+public record PollingFolderRequest : FolderRequest
 {   
     [Display("Folder relation trigger")]
     [StaticDataSource(typeof(FolderRelationTriggerDataHandler))]

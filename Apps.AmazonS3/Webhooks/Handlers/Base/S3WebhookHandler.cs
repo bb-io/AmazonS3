@@ -1,4 +1,4 @@
-using Apps.AmazonS3.Models.Request.Base;
+using Apps.AmazonS3.Models.Request;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Webhooks;
@@ -8,7 +8,7 @@ using EventType = Amazon.S3.EventType;
 
 namespace Apps.AmazonS3.Webhooks.Handlers.Base;
 
-public abstract class S3WebhookHandler(InvocationContext invocationContext, [WebhookParameter] BucketRequestModel bucketRequest)
+public abstract class S3WebhookHandler(InvocationContext invocationContext, [WebhookParameter] BucketRequest bucketRequest)
     : InvocableBridgeWebhookHandler(invocationContext)
 {
     protected abstract EventType Event { get; }

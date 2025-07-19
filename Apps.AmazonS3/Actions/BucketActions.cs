@@ -1,5 +1,5 @@
 ﻿using Amazon.S3.Model;
-using Apps.AmazonS3.Models.Request.Base;
+using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Response;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
@@ -25,7 +25,7 @@ public class BucketActions(InvocationContext invocationContext) : AmazonInvocabl
     }
 
     [Action("Delete bucket", Description = "Delete an S3 bucket.")]
-    public async Task DeleteBucket([ActionParameter] BucketRequestModel bucket)
+    public async Task DeleteBucket([ActionParameter] BucketRequest bucket)
     {
         var request = new DeleteBucketRequest
         {

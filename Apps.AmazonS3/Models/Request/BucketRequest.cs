@@ -2,9 +2,9 @@
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 
-namespace Apps.AmazonS3.Models.Request.Base;
+namespace Apps.AmazonS3.Models.Request;
 
-public record BucketRequestModel
+public record BucketRequest
 {
     [Display("Bucket name")] 
     [DataSource(typeof(BucketDataHandler))]

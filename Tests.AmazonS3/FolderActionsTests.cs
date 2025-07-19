@@ -60,14 +60,14 @@ public class FolderActionsTests : TestBase
     [TestMethod]
     public async Task Create_folder_works()
     {
-        var request = new FolderRequest
+        var bucketRequest = new BucketRequest { BucketName = TestBucketName };
+        var folderRequest = new FolderRequest
         {
-            BucketName = TestBucketName,
             FolderId = TestFolderName,
             ParentFolderId = TestParentFolder,
         };
 
-        var response = await Actions.CreateFolder(request);
+        var response = await Actions.CreateFolder(bucketRequest, folderRequest);
 
         Assert.IsNotNull(response);
     }
@@ -75,14 +75,14 @@ public class FolderActionsTests : TestBase
     [TestMethod]
     public async Task Delete_folder_works()
     {
-        var request = new FolderRequest
+        var bucketRequest = new BucketRequest { BucketName = TestBucketName };
+        var folderRequest = new FolderRequest
         {
-            BucketName = TestBucketName,
             FolderId = TestFolderName,
             ParentFolderId = TestParentFolder
         };
 
-        await Actions.DeleteFolder(request);
+        await Actions.DeleteFolder(bucketRequest, folderRequest);
     }
 }
 

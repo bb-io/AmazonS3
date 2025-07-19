@@ -7,7 +7,7 @@ public class RecordResponse
     [Display("File or folder ID (key)")]
     public string ObjectKey { get; set; } = string.Empty;
 
-    [Display("File ETag")]
+    [Display("ETag")]
     public string ObjectETag { get; set; } = string.Empty;
 
     [Display("Bucket name")]

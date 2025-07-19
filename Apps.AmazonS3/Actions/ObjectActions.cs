@@ -1,6 +1,5 @@
 ﻿using Amazon.S3.Model;
 using Apps.AmazonS3.Models.Request;
-using Apps.AmazonS3.Models.Request.Base;
 using Apps.AmazonS3.Models.Response;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
@@ -16,25 +15,25 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
 {
     [Action("Search files", Description = "Search for objects in a specific bucket")]
     public async Task<FilesResponse> ListObjectsInBucket(
-        [ActionParameter] BucketRequestModel bucket,
-        [ActionParameter] SearchFilesRequest input)
+        [ActionParameter] BucketRequest bucket,
+        [ActionParameter] SearchFilesRequest searchRequest)
     {
         var request = new ListObjectsV2Request()
         {
             BucketName = bucket.BucketName,
-            Prefix = input.FolderID ?? string.Empty,
+            Prefix = searchRequest.FolderID ?? string.Empty,
         };
 
         var client = await CreateBucketClient(bucket.BucketName);
 
         var result = await ExecuteAction(async () =>
         {
-            var result = new List<FileObject>();
+            var result = new List<FileResponse>();
             await foreach (var s3Object in client.Paginators.ListObjectsV2(request).S3Objects)
             {
                 if(!s3Object.Key.EndsWith('/'))
                 {
-                    result.Add(new FileObject(s3Object));
+                    result.Add(new FileResponse(s3Object));
                 }
             }
             return result;
@@ -45,23 +44,25 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
 
     [BlueprintActionDefinition(BlueprintAction.DownloadFile)]
     [Action("Download file", Description = "Download a file from a bucket")]
-    public async Task<BucketFileObject> GetObject([ActionParameter] FileInput input)
+    public async Task<DownloadFileResponse> GetObject(
+        [ActionParameter] BucketRequest bucket,
+        [ActionParameter] FileRequest fileRequest)
     {
         var request = new GetObjectRequest
         {
-            BucketName = input.BucketName,
-            Key = input.FileId,
+            BucketName = bucket.BucketName,
+            Key = fileRequest.FileId,
         };
 
-        var client = await CreateBucketClient(input.BucketName);
+        var client = await CreateBucketClient(bucket.BucketName);
         var response = await ExecuteAction(() => client.GetObjectAsync(request));
 
         var fileName = response.Key.Contains('/') ? response.Key.Substring(response.Key.LastIndexOf('/') + 1) : response.Key;
 
         var downloadFileUrl = client.GetPreSignedURL(new()
         {
-            BucketName = input.BucketName,
-            Key = input.FileId,
+            BucketName = bucket.BucketName,
+            Key = fileRequest.FileId,
             Expires = DateTime.Now.AddHours(1)
         });        
 
@@ -71,46 +72,50 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
 
     [BlueprintActionDefinition(BlueprintAction.UploadFile)]
     [Action("Upload file", Description = "Upload a file to a bucket")]
-    public async Task UploadObject([ActionParameter] UploadFileInput input)
+    public async Task UploadObject(
+        [ActionParameter] BucketRequest bucket, 
+        [ActionParameter] UploadFileRequest uploadRequest)
     {
-        var fileStream = await fileManagementClient.DownloadAsync(input.File);
+        var fileStream = await fileManagementClient.DownloadAsync(uploadRequest.File);
         using var memoryStream = new MemoryStream();
 
         await fileStream.CopyToAsync(memoryStream);
 
-        var folderId = input.FolderId?.TrimEnd('/') ?? string.Empty;
-        var fileId = input.FileId?.TrimStart('/') ?? input.File.Name;
+        var folderId = uploadRequest.FolderId?.TrimEnd('/') ?? string.Empty;
+        var fileId = uploadRequest.FileId?.TrimStart('/') ?? uploadRequest.File.Name;
         var keyParts = new List<string> { folderId, fileId }.Where(part => !string.IsNullOrEmpty(part));
         var key = string.Join('/', keyParts).TrimStart('/');
 
         var request = new PutObjectRequest
         {
-            BucketName = input.BucketName,
+            BucketName = bucket.BucketName,
             Key = key,
             InputStream = memoryStream,
             Headers = { ContentLength = memoryStream.Length },
-            ContentType = input.File.ContentType
+            ContentType = uploadRequest.File.ContentType
         };
 
-        if (!string.IsNullOrEmpty(input.ObjectMetadata))
+        if (!string.IsNullOrEmpty(uploadRequest.ObjectMetadata))
         {
-            request.Metadata.Add("object", input.ObjectMetadata);
+            request.Metadata.Add("object", uploadRequest.ObjectMetadata);
         }
 
-        var client = await CreateBucketClient(input.BucketName);
+        var client = await CreateBucketClient(bucket.BucketName);
         await ExecuteAction(() => client.PutObjectAsync(request));
     }
 
     [Action("Delete file", Description = "Delete a file from the S3 bucket.")]
-    public async Task DeleteObject([ActionParameter] FileInput deleteData)
+    public async Task DeleteObject(
+        [ActionParameter] BucketRequest bucket,
+        [ActionParameter] FileRequest fileRequest)
     {
         var request = new DeleteObjectRequest
         {
-            BucketName = deleteData.BucketName,
-            Key = deleteData.FileId,
+            BucketName = bucket.BucketName,
+            Key = fileRequest.FileId,
         };
 
-        var client = await CreateBucketClient(deleteData.BucketName);
+        var client = await CreateBucketClient(bucket.BucketName);
         await ExecuteAction(() => client.DeleteObjectAsync(request));
     }
 }

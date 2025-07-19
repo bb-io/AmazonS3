@@ -11,31 +11,35 @@ namespace Apps.AmazonS3.Actions;
 public class FolderActions (InvocationContext invocationContext) : AmazonInvocable(invocationContext)
 {
     [Action("Create folder", Description = "Create a folder in a bucket")]
-    public async Task<FolderResponse> CreateFolder([ActionParameter] FolderRequest createFolderInput)
+    public async Task<FolderResponse> CreateFolder(
+        [ActionParameter] BucketRequest bucket,
+        [ActionParameter] FolderRequest folderRequest)
     {
         var createFolderRequest = new PutObjectRequest
         {
-            BucketName = createFolderInput.BucketName,
-            Key = createFolderInput.GetKey(),
+            BucketName = bucket.BucketName,
+            Key = folderRequest.GetKey(),
             ContentBody = string.Empty,
         };
 
-        var client = await CreateBucketClient(createFolderInput.BucketName);
+        var client = await CreateBucketClient(bucket.BucketName);
         await ExecuteAction(() => client.PutObjectAsync(createFolderRequest));
 
-        return new FolderResponse { FolderId = createFolderInput.GetKey() };
+        return new FolderResponse { FolderId = folderRequest.GetKey() };
     }
 
     [Action("Delete folder", Description = "Delete a folder from a bucket")]
-    public async Task DeleteFolder([ActionParameter] FolderRequest deleteFolderInput)
+    public async Task DeleteFolder(
+        [ActionParameter] BucketRequest bucket,
+        [ActionParameter] FolderRequest folderRequest)
     {
         var request = new DeleteObjectRequest
         {
-            BucketName = deleteFolderInput.BucketName,
-            Key = deleteFolderInput.GetKey(),
+            BucketName = bucket.BucketName,
+            Key = folderRequest.GetKey(),
         };
 
-        var client = await CreateBucketClient(deleteFolderInput.BucketName);
+        var client = await CreateBucketClient(bucket.BucketName);
         await ExecuteAction(() => client.DeleteObjectAsync(request));
     }
 }

@@ -1,11 +1,10 @@
 ﻿using Apps.AmazonS3.DataSourceHandlers;
-using Apps.AmazonS3.Models.Request.Base;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 
 namespace Apps.AmazonS3.Models.Request;
 
-public record FolderRequest : BucketRequestModel
+public record FolderRequest
 {
     [Display("Folder ID (prefix)")]
     [DataSource(typeof(FolderDataHandler))]

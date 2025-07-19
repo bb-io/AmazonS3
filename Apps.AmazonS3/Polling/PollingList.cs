@@ -1,12 +1,12 @@
 using Amazon.S3.Model;
 using Apps.AmazonS3.Constants;
 using Apps.AmazonS3.Extensions;
+using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Response;
 using Apps.AmazonS3.Polling.Models;
 using Apps.AmazonS3.Polling.Models.Memory;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Polling;
-using Blackbird.Applications.Sdk.Common.Webhooks;
 using Blackbird.Applications.SDK.Blueprints;
 
 namespace Apps.AmazonS3.Polling;
@@ -18,7 +18,8 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
     [PollingEvent("On files updated", "On any file created or updated")]
     public async Task<PollingEventResponse<DateMemory, FilesResponse>> OnFilesUpdated(
         PollingEventRequest<DateMemory> request,
-        [PollingEventParameter] PollingFolderInput input)
+        [PollingEventParameter] BucketRequest bucket,
+        [PollingEventParameter] PollingFolderRequest folderRequest)
     {
         if (request.Memory == null)
         {
@@ -29,20 +30,20 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
             };
         }
 
-        if (input.FolderId == "/")
-            input.FolderId = string.Empty;
+        if (folderRequest.FolderId == "/")
+            folderRequest.FolderId = string.Empty;
 
         var result = new List<S3Object>();
 
         try
         {
-            var client = await CreateBucketClient(input.BucketName);
+            var client = await CreateBucketClient(bucket.BucketName);
             var objects = client.Paginators.ListObjectsV2(new()
             {
-                BucketName = input.BucketName,
-                Prefix = string.IsNullOrWhiteSpace(input.FolderId)
+                BucketName = bucket.BucketName,
+                Prefix = string.IsNullOrWhiteSpace(folderRequest.FolderId)
                     ? string.Empty
-                    : input.FolderId
+                    : folderRequest.FolderId
             });
 
 
@@ -54,7 +55,7 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
                 if (s3Object.Size == default)
                     continue;
 
-                if (!IsObjectInFolder(s3Object, input))
+                if (!IsObjectInFolder(s3Object, folderRequest))
                     continue;
 
                 result.Add(s3Object);
@@ -81,21 +82,21 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
         {
             FlyBird = true,
             Memory = new() { LastInteractionDate = DateTime.UtcNow },
-            Result = new() { Files = result.Select(x => new FileObject(x)) }
+            Result = new() { Files = result.Select(x => new FileResponse(x)) }
         };
     }
 
-    private static bool IsObjectInFolder(S3Object s3Object, PollingFolderInput input)
+    private static bool IsObjectInFolder(S3Object s3Object, PollingFolderRequest request)
     {
-        if (input.FolderId is null)
+        if (request.FolderId is null)
             return true;
 
-        if ((string.IsNullOrWhiteSpace(input.FolderRelationTrigger) ||
-             input.FolderRelationTrigger == FolderRelationTrigger.Descendants) && s3Object.Key.Contains(input.FolderId))
+        if ((string.IsNullOrWhiteSpace(request.FolderRelationTrigger) ||
+             request.FolderRelationTrigger == FolderRelationTrigger.Descendants) && s3Object.Key.Contains(request.FolderId))
             return true;
 
-        if (input.FolderRelationTrigger == FolderRelationTrigger.Children &&
-            s3Object.GetParentFolder() == input.FolderId.Trim('/').Split('/').Last())
+        if (request.FolderRelationTrigger == FolderRelationTrigger.Children &&
+            s3Object.GetParentFolder() == request.FolderId.Trim('/').Split('/').Last())
             return true;
 
         return false;
