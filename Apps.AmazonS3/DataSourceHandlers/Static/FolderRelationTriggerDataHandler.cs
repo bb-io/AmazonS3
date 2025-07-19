@@ -10,8 +10,8 @@ public class FolderRelationTriggerDataHandler : IStaticDataSourceItemHandler
     {
         return
         [
-            new( FolderRelationTrigger.Children, "Children" ),
-            new( FolderRelationTrigger.Descendants, "Descendants" ),
+            new( FolderRelationTrigger.Children, "Only files in selected folder" ),
+            new( FolderRelationTrigger.Descendants, "Files in selected folder and all subfolders" ),
         ];
     }
 }
