@@ -13,7 +13,7 @@ public class DownloadFileResponse(GetObjectResponse s3Object, FileReference file
     public string FileId { get; init; } = s3Object.Key;
 
     [Display("Last modified")]
-    public DateTime LastModified { get; init; } = s3Object.LastModified;
+    public DateTime? LastModified { get; init; } = s3Object.LastModified;
 
     public string ETag { get; init; } = s3Object.ETag;
 

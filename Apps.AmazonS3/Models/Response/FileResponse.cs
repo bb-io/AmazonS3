@@ -10,7 +10,7 @@ public class FileResponse(S3Object s3Object) : IDownloadFileInput
     public string FileId { get; set; } = s3Object.Key;
 
     [Display("Last modified")]
-    public DateTime LastModified { get; init; } = s3Object.LastModified;
+    public DateTime? LastModified { get; init; } = s3Object.LastModified;
 
     // ETag is wrapped in double quotes, that's expected behavior and no need to remove them
     // See an issue for details: https://github.com/aws/aws-sdk-net/issues/815

@@ -31,7 +31,7 @@ public class FolderDataHandler(InvocationContext invocationContext, [ActionParam
             result.Add(s3Object);
 
         return result
-            .Where(x => x.Key.EndsWith('/') && x.Size == default)
+            .Where(x => x.Key.EndsWith('/') && x.Size == 0)
             .Where(x => context.SearchString == null ||
                         x.Key.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
             .Take(30)

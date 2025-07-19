@@ -35,7 +35,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
             var result = new List<FileResponse>();
             await foreach (var s3Object in client.Paginators.ListObjectsV2(request).S3Objects)
             {
-                if (s3Object.Key.EndsWith('/') && s3Object.Size == default)
+                if (s3Object.Key.EndsWith('/') && s3Object.Size == 0)
                     continue;
 
                 if (!ObjectUtils.IsObjectInFolder(s3Object, searchRequest))
