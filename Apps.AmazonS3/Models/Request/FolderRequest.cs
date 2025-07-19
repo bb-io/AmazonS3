@@ -10,7 +10,7 @@ public record FolderRequest
     [DataSource(typeof(FolderDataHandler))]
     public string FolderId { get; set; } = string.Empty;
 
-    [Display("Parent folder ID (prefix, will be combined with folder ID)")]
+    [Display("Parent folder ID (prefix of folder ID)")]
     [DataSource(typeof(FolderDataHandler))]
     public string? ParentFolderId { get; set; } = string.Empty;
 

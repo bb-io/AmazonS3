@@ -1,6 +1,7 @@
 ﻿using Amazon.S3.Model;
 using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Response;
+using Apps.AmazonS3.Utils;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Files;
@@ -18,10 +19,13 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] SearchFilesRequest searchRequest)
     {
+        if (string.IsNullOrWhiteSpace(searchRequest.FolderId) || searchRequest.FolderId == "/")
+            searchRequest.FolderId = string.Empty;
+
         var request = new ListObjectsV2Request()
         {
             BucketName = bucket.BucketName,
-            Prefix = searchRequest.FolderID ?? string.Empty,
+            Prefix = searchRequest.FolderId,
         };
 
         var client = await CreateBucketClient(bucket.BucketName);
@@ -31,10 +35,13 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
             var result = new List<FileResponse>();
             await foreach (var s3Object in client.Paginators.ListObjectsV2(request).S3Objects)
             {
-                if(!s3Object.Key.EndsWith('/'))
-                {
-                    result.Add(new FileResponse(s3Object));
-                }
+                if (s3Object.Key.EndsWith('/') && s3Object.Size == default)
+                    continue;
+
+                if (!ObjectUtils.IsObjectInFolder(s3Object, searchRequest))
+                    continue;
+
+                result.Add(new FileResponse(s3Object));
             }
             return result;
         });

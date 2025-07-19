@@ -1,10 +1,8 @@
 using Amazon.S3.Model;
-using Apps.AmazonS3.Constants;
-using Apps.AmazonS3.Extensions;
 using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Response;
-using Apps.AmazonS3.Polling.Models;
 using Apps.AmazonS3.Polling.Models.Memory;
+using Apps.AmazonS3.Utils;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Polling;
 using Blackbird.Applications.SDK.Blueprints;
@@ -19,7 +17,7 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
     public async Task<PollingEventResponse<DateMemory, FilesResponse>> OnFilesUpdated(
         PollingEventRequest<DateMemory> request,
         [PollingEventParameter] BucketRequest bucket,
-        [PollingEventParameter] PollingFolderRequest folderRequest)
+        [PollingEventParameter] SearchFilesRequest folderRequest)
     {
         if (request.Memory == null)
         {
@@ -30,7 +28,7 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
             };
         }
 
-        if (folderRequest.FolderId == "/")
+        if (string.IsNullOrWhiteSpace(folderRequest.FolderId) || folderRequest.FolderId == "/")
             folderRequest.FolderId = string.Empty;
 
         var result = new List<S3Object>();
@@ -41,9 +39,7 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
             var objects = client.Paginators.ListObjectsV2(new()
             {
                 BucketName = bucket.BucketName,
-                Prefix = string.IsNullOrWhiteSpace(folderRequest.FolderId)
-                    ? string.Empty
-                    : folderRequest.FolderId
+                Prefix = folderRequest.FolderId
             });
 
 
@@ -52,10 +48,10 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
                 if (request.Memory.LastInteractionDate > s3Object.LastModified)
                     continue;
 
-                if (s3Object.Size == default)
+                if (s3Object.Key.EndsWith('/') && s3Object.Size == default)
                     continue;
 
-                if (!IsObjectInFolder(s3Object, folderRequest))
+                if (!ObjectUtils.IsObjectInFolder(s3Object, folderRequest))
                     continue;
 
                 result.Add(s3Object);
@@ -84,21 +80,5 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
             Memory = new() { LastInteractionDate = DateTime.UtcNow },
             Result = new() { Files = result.Select(x => new FileResponse(x)) }
         };
-    }
-
-    private static bool IsObjectInFolder(S3Object s3Object, PollingFolderRequest request)
-    {
-        if (request.FolderId is null)
-            return true;
-
-        if ((string.IsNullOrWhiteSpace(request.FolderRelationTrigger) ||
-             request.FolderRelationTrigger == FolderRelationTrigger.Descendants) && s3Object.Key.Contains(request.FolderId))
-            return true;
-
-        if (request.FolderRelationTrigger == FolderRelationTrigger.Children &&
-            s3Object.GetParentFolder() == request.FolderId.Trim('/').Split('/').Last())
-            return true;
-
-        return false;
     }
 }

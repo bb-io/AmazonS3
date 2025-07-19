@@ -36,7 +36,7 @@ public class ObjectActionsTest : TestBase
     {
         var result = await Actions.ListObjectsInBucket(
             new BucketRequest { BucketName = TestBucketName },
-            new SearchFilesRequest { FolderID = "fol/" });
+            new SearchFilesRequest { FolderId = "fol/" });
 
         Assert.IsNotNull(result);
         foreach (var item in result.Files)
