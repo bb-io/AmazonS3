@@ -6,7 +6,7 @@ namespace Apps.AmazonS3.Models.Response;
 
 public class FileResponse(S3Object s3Object) : IDownloadFileInput
 {
-    [Display("File ID (key)")]
+    [Display("File key")]
     public string FileId { get; set; } = s3Object.Key;
 
     [Display("Last modified")]

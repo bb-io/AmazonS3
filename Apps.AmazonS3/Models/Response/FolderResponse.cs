@@ -4,6 +4,6 @@ namespace Apps.AmazonS3.Models.Response;
 
 public class FolderResponse
 {
-    [Display("Folder ID (prefix)")]
+    [Display("Folder prefix")]
     public string FolderId { get; set; } = string.Empty;
 }

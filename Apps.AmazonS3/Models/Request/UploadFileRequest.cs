@@ -10,10 +10,10 @@ public record UploadFileRequest : IUploadFileInput
 {
     public FileReference File { get; set; } = new();
 
-    [Display("File ID (key)", Description = "Defaults to filename when omitted, can include full path")]
+    [Display("File key", Description = "Defaults to filename when omitted, can include full path")]
     public string? FileId { get; set; }
 
-    [Display("Folder ID (prefix)", Description = "Defaults to bucket root when omitted")]
+    [Display("Folder prefix", Description = "Defaults to bucket root when omitted")]
     [DataSource(typeof(FolderDataHandler))]
     public string? FolderId { get; set; } = string.Empty;
 

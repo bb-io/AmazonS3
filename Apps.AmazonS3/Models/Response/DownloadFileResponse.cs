@@ -9,7 +9,7 @@ public class DownloadFileResponse(GetObjectResponse s3Object, FileReference file
 {
     public FileReference File { get; set; } = file;
 
-    [Display("File ID (key)")]
+    [Display("File key")]
     public string FileId { get; init; } = s3Object.Key;
 
     [Display("Last modified")]

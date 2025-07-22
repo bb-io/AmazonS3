@@ -38,19 +38,19 @@ You can find how to get the `Access key` and `Access secret` [here](https://supp
 
 ### File actions
 
-Single files actions are using File ID or "key" to locale specific object in S3 bucket. Use a full path there, for example: `example/folder/your_file__name__with.extension`
+Single files actions are using File key to locale specific object in S3 bucket. Use a full path there, for example: `example/folder/your_file__name__with.extension`
 
-- **Search files**: Retrieve a list of files from a specified bucket. Optionally search by Folder ID (prefix), e.g. specify a full folder path `example/folder/` to find all files.
+- **Search files**: Retrieve a list of files from a specified bucket. Optionally search by folder prefix, e.g. specify a full folder path `example/folder/` to find all files.
 - **Download file**: Retrieve a specific file from a bucket.
 - **Upload file**: Uploads a new file to a specified bucket.
 - **Delete file**: Remove a file from a bucket.
 
 ### Folder actions
 
-Single folder actions are using Folder ID or "prefix" to locale specific object in S3 bucket. Use a full path there, for example: `example/folder/`. Notice, that folders in S3 should always end with a slash (`/`) character.
+Single folder actions are using Folder prefix to locale specific object in S3 bucket. Use a full path there, for example: `example/folder/`. Notice, that folders in S3 should always end with a slash (`/`) character.
 
-- **Create folder**: Creates a new folder in a specified bucket. Use the key optional input to create a folder structure e.g. `example/folder_to_create/`.
-- **Delete folder**: Removes a folder from a specified bucket. Use the key optional input to specify the folder structure e.g. `example/folder/subfolder_to_delete/`.
+- **Create folder**: Creates a new folder in a specified bucket.
+- **Delete folder**: Removes a folder from a specified bucket.
 
 ## Events
 
