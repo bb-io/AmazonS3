@@ -4,5 +4,5 @@
     "access_secret": "",
     "region": "us-east-1"
   },
-  "TestFolder": "C:\\Users\\..."
+  "TestBucketName": "myuniquebucketfortesting"
 }

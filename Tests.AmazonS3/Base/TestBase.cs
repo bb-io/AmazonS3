@@ -1,11 +1,6 @@
 ﻿using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Tests.AmazonS3.Base;
 public class TestBase
@@ -16,17 +11,25 @@ public class TestBase
 
     public FileManager FileManager { get; set; }
 
+    public string TestBucketName;
+
     public TestBase()
     {
         var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-        Creds = config.GetSection("ConnectionDefinition").GetChildren().Select(x => new AuthenticationCredentialsProvider(x.Key, x.Value)).ToList();
-        var folderLocation = config.GetSection("TestFolder").Value;
+        Creds = config.GetSection("ConnectionDefinition").GetChildren()
+            .Select(x => new AuthenticationCredentialsProvider(x.Key, x.Value ?? string.Empty)).ToList();
+
+        var projectDirectory = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory)?.Parent?.Parent?.Parent?.FullName
+            ?? throw new DirectoryNotFoundException("Project directory not found.");
 
         InvocationContext = new InvocationContext
         {
             AuthenticationCredentialsProviders = Creds,
         };
 
-        FileManager = new FileManager(folderLocation);
+        FileManager = new FileManager(projectDirectory);
+
+        TestBucketName = config["TestBucketName"]
+            ?? throw new Exception("Test bucket name not found.");
     }
 }

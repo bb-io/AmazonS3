@@ -1,33 +1,28 @@
 using Amazon.S3.Model;
-using Apps.AmazonS3.Polling.Models;
+using Apps.AmazonS3.Models.Request;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 
 namespace Apps.AmazonS3.DataSourceHandlers;
 
-public class FolderDataHandler: AmazonInvocable, IAsyncDataSourceItemHandler
+public class FolderDataHandler(InvocationContext invocationContext, [ActionParameter] BucketRequest bucketRequest)
+    : AmazonInvocable(invocationContext), IAsyncDataSourceItemHandler
 {
-    private readonly PollingFolderRequest _pollingFolderRequest;
-
-    public FolderDataHandler(InvocationContext invocationContext, [ActionParameter] PollingFolderRequest pollingFolderRequest) : base(
-        invocationContext)
-    {
-        _pollingFolderRequest = pollingFolderRequest;
-    }
+    private readonly BucketRequest _bucketRequest = bucketRequest;
 
     public async Task<IEnumerable<DataSourceItem>> GetDataAsync(
         DataSourceContext context,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(_pollingFolderRequest.BucketName))
+        if (string.IsNullOrWhiteSpace(_bucketRequest.BucketName))
             throw new("You should input Bucket name first");
 
-        var client = await CreateBucketClient(_pollingFolderRequest.BucketName);
+        var client = await CreateBucketClient(_bucketRequest.BucketName);
 
         var objects = client.Paginators.ListObjectsV2(new()
         {
-            BucketName = _pollingFolderRequest.BucketName
+            BucketName = _bucketRequest.BucketName
         });
 
         var result = new List<S3Object>();
@@ -36,7 +31,7 @@ public class FolderDataHandler: AmazonInvocable, IAsyncDataSourceItemHandler
             result.Add(s3Object);
 
         return result
-            .Where(x => x.Key.EndsWith("/") && x.Size == default)
+            .Where(x => x.Key.EndsWith('/') && x.Size == 0)
             .Where(x => context.SearchString == null ||
                         x.Key.Contains(context.SearchString, StringComparison.OrdinalIgnoreCase))
             .Take(30)

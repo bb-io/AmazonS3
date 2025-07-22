@@ -30,7 +30,7 @@ public class ValidatorTests : TestBase
     }
 
     [TestMethod]
-    public async Task ShowConnectionDefinition()
+    public void ShowConnectionDefinition()
     {
         var definition = new ConnectionDefinition();
 

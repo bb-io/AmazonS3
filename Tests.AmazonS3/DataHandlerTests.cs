@@ -1,8 +1,6 @@
-using Apps.AmazonS3.Connections;
 using Apps.AmazonS3.DataSourceHandlers;
-using Blackbird.Applications.Sdk.Common.Authentication;
+using Apps.AmazonS3.Models.Request;
 using Blackbird.Applications.Sdk.Common.Dynamic;
-using Newtonsoft.Json;
 using Tests.AmazonS3.Base;
 
 namespace Tests.AmazonS3;
@@ -15,6 +13,22 @@ public class DataHandlerTests : TestBase
     {
         var handler = new BucketDataHandler(InvocationContext);
         var result = await handler.GetDataAsync(new DataSourceContext { }, CancellationToken.None);
+
+        Assert.IsNotNull(result);
+        foreach (var item in result)
+        {
+            Console.WriteLine($"{item.Value}: {item.DisplayName}");
+        }
+    }
+
+    [TestMethod]
+    public async Task FolderDataHandler_returns_items()
+    {
+        var bucketRequest = new BucketRequest { BucketName = TestBucketName };
+
+        var handler = new FolderDataHandler(InvocationContext, bucketRequest);
+        var result = await handler.GetDataAsync(new DataSourceContext { }, CancellationToken.None);
+
         Assert.IsNotNull(result);
         foreach (var item in result)
         {

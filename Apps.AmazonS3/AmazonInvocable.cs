@@ -7,7 +7,6 @@ using Blackbird.Applications.Sdk.Common;
 using Amazon;
 using Amazon.SimpleNotificationService;
 using Blackbird.Applications.Sdk.Utils.Extensions.Sdk;
-using Blackbird.Applications.Sdk.Common.Authentication;
 
 namespace Apps.AmazonS3;
 public class AmazonInvocable : BaseInvocable
@@ -98,7 +97,7 @@ public class AmazonInvocable : BaseInvocable
         }
     }
 
-    public async Task<IEnumerable<T>> ExecutePaginated<T, TResult>(IPaginatedEnumerable<TResult> paginatorResponses, Func<TResult, IEnumerable<T>> selector)
+    public static async Task<IEnumerable<T>> ExecutePaginated<T, TResult>(IPaginatedEnumerable<TResult> paginatorResponses, Func<TResult, IEnumerable<T>> selector)
     {
         return await ExecuteAction(async () => {
             var response = new List<T>();

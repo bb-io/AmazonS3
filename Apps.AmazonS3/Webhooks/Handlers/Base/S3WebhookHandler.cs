@@ -1,4 +1,4 @@
-using Apps.AmazonS3.Models.Request.Base;
+using Apps.AmazonS3.Models.Request;
 using Blackbird.Applications.Sdk.Common.Authentication;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Webhooks;
@@ -8,18 +8,12 @@ using EventType = Amazon.S3.EventType;
 
 namespace Apps.AmazonS3.Webhooks.Handlers.Base;
 
-public abstract class S3WebhookHandler : InvocableBridgeWebhookHandler
+public abstract class S3WebhookHandler(InvocationContext invocationContext, [WebhookParameter] BucketRequest bucketRequest)
+    : InvocableBridgeWebhookHandler(invocationContext)
 {
     protected abstract EventType Event { get; }
-    private string BucketName { get; set; }
-    protected AmazonInvocable AmazonInvocable { get; }
-
-    public S3WebhookHandler(InvocationContext invocationContext, [WebhookParameter] BucketRequestModel bucketRequest) : base(
-        invocationContext)
-    {
-        BucketName = bucketRequest.BucketName;
-        AmazonInvocable = new AmazonInvocable(invocationContext);
-    }
+    private string BucketName { get; set; } = bucketRequest.BucketName;
+    protected AmazonInvocable AmazonInvocable { get; } = new AmazonInvocable(invocationContext);
 
     public override async Task SubscribeAsync(IEnumerable<AuthenticationCredentialsProvider> creds,
         Dictionary<string, string> values)
@@ -48,7 +42,7 @@ public abstract class S3WebhookHandler : InvocableBridgeWebhookHandler
             topics.Add(new()
             {
                 Topic = topicArn,
-                Events = new() { Event }
+                Events = [Event]
             });
             await AmazonInvocable.ExecuteAction(() => s3Client.PutBucketNotificationAsync(new()
             {
