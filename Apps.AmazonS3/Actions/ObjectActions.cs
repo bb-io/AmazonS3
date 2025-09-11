@@ -72,4 +72,32 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         var file = new FileReference(new(HttpMethod.Get, downloadFileUrl), fileName, response.Headers.ContentType);
         return new(response, file);
     }
+
+    [Action("Upload file", Description = "Upload a file to a bucket")]
+    public async Task UploadObject([ActionParameter] UploadObjectModel uploadData)
+    {
+        var fileStream = await fileManagementClient.DownloadAsync(uploadData.File);
+        using var memoryStream = new MemoryStream();
+
+        await fileStream.CopyToAsync(memoryStream);
+        var fileLength = memoryStream.Length;
+
+        var request = new PutObjectRequest
+        {
+            BucketName = uploadData.BucketName,
+            Key = uploadData.Key ?? uploadData.File.Name,
+            InputStream = memoryStream,
+            Headers = { ContentLength = fileLength },
+            ContentType = uploadData.File.ContentType
+        };
+
+        if (!string.IsNullOrEmpty(uploadData.ObjectMetadata))
+        {
+            request.Metadata.Add("object", uploadData.ObjectMetadata);
+        }
+
+        var client = await CreateBucketClient(uploadData.BucketName);
+
+        await ExecuteAction(() => client.PutObjectAsync(request));
+    }
 }

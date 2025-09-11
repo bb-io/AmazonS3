@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <Product>Amazon S3 (Lite Version)</Product>
     <Description>A lightweight version of Amazon S3, providing only essential actions to list objects in a bucket and retrieve objects. This version is optimized for users without the necessary permissions for bucket validation or location retrieval.</Description>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <AssemblyName>Apps.AmazonS3Lite</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
