@@ -15,6 +15,8 @@ public class FolderDataHandler(InvocationContext invocationContext, [ActionParam
         DataSourceContext context,
         CancellationToken cancellationToken)
     {
+        _bucketRequest.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
+
         if (string.IsNullOrWhiteSpace(_bucketRequest.BucketName))
             throw new("You should input Bucket name first");
 

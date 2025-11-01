@@ -13,7 +13,7 @@ public record UploadFileRequest : IUploadFileInput
     [Display("File key", Description = "Defaults to filename when omitted, can include full path")]
     public string? FileId { get; set; }
 
-    [Display("Folder prefix", Description = "Defaults to bucket root when omitted")]
+    [Display("Folder", Description = "Defaults to bucket root when omitted")]
     [DataSource(typeof(FolderDataHandler))]
     public string? FolderId { get; set; } = string.Empty;
 

@@ -6,11 +6,11 @@ namespace Apps.AmazonS3.Models.Request;
 
 public record FolderRequest
 {
-    [Display("Folder prefix")]
+    [Display("Folder name")]
     [DataSource(typeof(FolderDataHandler))]
     public string FolderId { get; set; } = string.Empty;
 
-    [Display("Parent folder prefix")]
+    [Display("Parent folder")]
     [DataSource(typeof(FolderDataHandler))]
     public string? ParentFolderId { get; set; } = string.Empty;
 

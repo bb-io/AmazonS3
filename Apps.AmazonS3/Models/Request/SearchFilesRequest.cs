@@ -8,7 +8,7 @@ namespace Apps.AmazonS3.Models.Request;
 
 public class SearchFilesRequest
 {
-    [Display("Folder prefix", Description = "Folder path, eg /example/subfolder/")]
+    [Display("Folder", Description = "Folder path, eg /example/subfolder/")]
     [DataSource(typeof(FolderDataHandler))]
     public string? FolderId { get; set; }
 
