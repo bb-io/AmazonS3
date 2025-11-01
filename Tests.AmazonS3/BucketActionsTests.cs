@@ -24,13 +24,9 @@ public class BucketActionsTests : TestBase
     {
         // Arrange
         var actions = new BucketActions(context);
-
+        var amazonInvokable = new AmazonInvocable(context);
         var check = new BucketDataHandler(context);
         var checkContext = new DataSourceContext();
-
-        var amazonInvokable = new AmazonInvocable(context);
-        var bucket = new BucketRequest { BucketName = BucketName };
-        bucket.ProvideConnectionType(amazonInvokable.CurrentConnectionType, amazonInvokable.ConnectedBucket);
 
         // Act to create
         await actions.CreateBucket(BucketName);        
@@ -38,7 +34,7 @@ public class BucketActionsTests : TestBase
         Assert.IsTrue(createCheck.Any(x => x.Value == BucketName));
 
         // Act to delete
-        await actions.DeleteBucket(bucket);
+        await actions.DeleteBucket(BucketName);
         var deleteCheck = await check.GetDataAsync(checkContext, CancellationToken.None);
         Assert.IsTrue(deleteCheck.All(x => x.Value != BucketName));
     }
@@ -58,9 +54,8 @@ public class BucketActionsTests : TestBase
     public async Task Delete_bucket_throws(InvocationContext context)
     {
         var actions = new BucketActions(context);
-        var bucket = new BucketRequest { BucketName = BucketName };
 
         await Assert.ThrowsExactlyAsync<PluginMisconfigurationException>(()
-            => actions.DeleteBucket(bucket));
+            => actions.DeleteBucket(BucketName));
     }
 }

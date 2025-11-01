@@ -44,7 +44,7 @@ public class BucketActions(InvocationContext invocationContext) : AmazonInvocabl
             BucketName = bucketName,
         };
 
-        var client = await CreateBucketClient(bucket.BucketName!);
+        var client = await CreateBucketClient(bucketName);
         await ExecuteAction(() => client.DeleteBucketAsync(request));
     }
 }
