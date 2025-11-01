@@ -5,4 +5,6 @@ public static class CredNames
     public const string AccessKey = "access_key";
     public const string AccessSecret = "access_secret";
     public const string Region = "region";
+    public const string Bucket = "bucket";
+    public const string ConnectionType = "connection_type";
 }

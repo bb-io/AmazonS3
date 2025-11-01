@@ -11,7 +11,21 @@ public class ConnectionDefinition : IConnectionDefinition
     [
         new()
         {
-            Name = "Developer API key",
+            Name = ConnectionTypes.SingleBucket,
+            DisplayName = "Single bucket",
+            AuthenticationType = ConnectionAuthenticationType.Undefined,
+            ConnectionProperties =
+            [
+                new(CredNames.AccessKey) { DisplayName = "Access key" },
+                new(CredNames.AccessSecret) { DisplayName = "Access secret", Sensitive = true },
+                new(CredNames.Region) { DisplayName = "Region", DataItems = RegionEndpoint.EnumerableAllRegions.Select(x => new ConnectionPropertyValue(x.SystemName, x.SystemName))  },
+                new(CredNames.Bucket) { DisplayName = "Bucket" },
+            ]
+        },
+        new()
+        {
+            Name = ConnectionTypes.AllBuckets,
+            DisplayName = "All buckets",
             AuthenticationType = ConnectionAuthenticationType.Undefined,
             ConnectionProperties =
             [
@@ -24,6 +38,15 @@ public class ConnectionDefinition : IConnectionDefinition
 
     public IEnumerable<AuthenticationCredentialsProvider> CreateAuthorizationCredentialsProviders(Dictionary<string, string> values)
     {
-        return values.Select(x => new AuthenticationCredentialsProvider(x.Key, x.Value)).ToList();
+        var credentials = values.Select(x => new AuthenticationCredentialsProvider(x.Key, x.Value)).ToList();
+
+        var connectionType = values[nameof(ConnectionPropertyGroup)] switch
+        {
+            var ct when ConnectionTypes.SupportedConnectionTypes.Contains(ct) => ct,
+            _ => throw new Exception($"Unknown connection type: {values[nameof(ConnectionPropertyGroup)]}")
+        };
+        credentials.Add(new AuthenticationCredentialsProvider(CredNames.ConnectionType, connectionType));
+
+        return credentials;
     }
 }

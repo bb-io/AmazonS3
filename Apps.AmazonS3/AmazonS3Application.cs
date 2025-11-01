@@ -7,7 +7,11 @@ public class AmazonS3Application : IApplication, ICategoryProvider
 {
     public IEnumerable<ApplicationCategory> Categories
     {
-        get => [ApplicationCategory.AmazonApps, ApplicationCategory.FileManagementAndStorage, ApplicationCategory.SoftwareDevelopment];
+        get => [
+            ApplicationCategory.AmazonApps,
+            ApplicationCategory.FileManagementAndStorage,
+            ApplicationCategory.SoftwareDevelopment
+        ];
         set { }
     }
 

@@ -19,16 +19,18 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] SearchFilesRequest searchRequest)
     {
+        bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
+
         if (string.IsNullOrWhiteSpace(searchRequest.FolderId) || searchRequest.FolderId == "/")
             searchRequest.FolderId = string.Empty;
 
         var request = new ListObjectsV2Request()
         {
-            BucketName = bucket.BucketName,
+            BucketName = bucket.BucketName!,
             Prefix = searchRequest.FolderId,
         };
 
-        var client = await CreateBucketClient(bucket.BucketName);
+        var client = await CreateBucketClient(bucket.BucketName!);
 
         var result = await ExecuteAction(async () =>
         {
@@ -55,20 +57,22 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] FileRequest fileRequest)
     {
+        bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
+
         var request = new GetObjectRequest
         {
-            BucketName = bucket.BucketName,
+            BucketName = bucket.BucketName!,
             Key = fileRequest.FileId,
         };
 
-        var client = await CreateBucketClient(bucket.BucketName);
+        var client = await CreateBucketClient(bucket.BucketName!);
         var response = await ExecuteAction(() => client.GetObjectAsync(request));
 
         var fileName = response.Key.Contains('/') ? response.Key.Substring(response.Key.LastIndexOf('/') + 1) : response.Key;
 
         var downloadFileUrl = client.GetPreSignedURL(new()
         {
-            BucketName = bucket.BucketName,
+            BucketName = bucket.BucketName!,
             Key = fileRequest.FileId,
             Expires = DateTime.Now.AddHours(1)
         });        
@@ -83,6 +87,8 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         [ActionParameter] BucketRequest bucket, 
         [ActionParameter] UploadFileRequest uploadRequest)
     {
+        bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
+
         var fileStream = await fileManagementClient.DownloadAsync(uploadRequest.File);
         using var memoryStream = new MemoryStream();
 
@@ -95,7 +101,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
 
         var request = new PutObjectRequest
         {
-            BucketName = bucket.BucketName,
+            BucketName = bucket.BucketName!,
             Key = key,
             InputStream = memoryStream,
             Headers = { ContentLength = memoryStream.Length },
@@ -107,7 +113,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
             request.Metadata.Add("object", uploadRequest.ObjectMetadata);
         }
 
-        var client = await CreateBucketClient(bucket.BucketName);
+        var client = await CreateBucketClient(bucket.BucketName!);
         await ExecuteAction(() => client.PutObjectAsync(request));
     }
 
@@ -116,13 +122,15 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] FileRequest fileRequest)
     {
+        bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
+
         var request = new DeleteObjectRequest
         {
-            BucketName = bucket.BucketName,
+            BucketName = bucket.BucketName!,
             Key = fileRequest.FileId,
         };
 
-        var client = await CreateBucketClient(bucket.BucketName);
+        var client = await CreateBucketClient(bucket.BucketName!);
         await ExecuteAction(() => client.DeleteObjectAsync(request));
     }
 }

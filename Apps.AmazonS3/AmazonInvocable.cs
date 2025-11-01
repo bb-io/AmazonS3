@@ -7,20 +7,31 @@ using Blackbird.Applications.Sdk.Common;
 using Amazon;
 using Amazon.SimpleNotificationService;
 using Blackbird.Applications.Sdk.Utils.Extensions.Sdk;
+using Amazon.S3.Model;
 
 namespace Apps.AmazonS3;
 public class AmazonInvocable : BaseInvocable
 {
+    public string CurrentConnectionType { get; }
     public AmazonS3Client S3Client { get; }
+    public string ConnectedBucket { get; }
 
     public AmazonInvocable(InvocationContext invocationContext) : base(invocationContext)
     {
+        CurrentConnectionType = invocationContext.AuthenticationCredentialsProviders.Get(CredNames.ConnectionType).Value
+            ?? throw new PluginMisconfigurationException("Connection type is not set.");
+
+        ConnectedBucket = CurrentConnectionType == ConnectionTypes.SingleBucket
+            ? invocationContext.AuthenticationCredentialsProviders.Get(CredNames.Bucket).Value
+                ?? throw new PluginMisconfigurationException("Connected bucket is not set for a single-bucket connection.")
+            : string.Empty;
+
         var key = invocationContext.AuthenticationCredentialsProviders.Get(CredNames.AccessKey);
         var secret = invocationContext.AuthenticationCredentialsProviders.Get(CredNames.AccessSecret);
         var region = invocationContext.AuthenticationCredentialsProviders.Get(CredNames.Region);
 
         if (string.IsNullOrEmpty(key.Value) || string.IsNullOrEmpty(secret.Value) || string.IsNullOrEmpty(region.Value))
-            throw new PluginMisconfigurationException(ExceptionMessages.CredentialsMissing);
+            throw new PluginMisconfigurationException("AWS User credentials missing. You need to specify access key and access secret to use Amazon S3");
 
         S3Client = new(key.Value, secret.Value, new AmazonS3Config
         {
@@ -30,21 +41,20 @@ public class AmazonInvocable : BaseInvocable
 
     public async Task<AmazonS3Client> CreateBucketClient(string bucketName)
     {
+        if (CurrentConnectionType == ConnectionTypes.SingleBucket)
+            bucketName = ConnectedBucket;
+
         var key = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.AccessKey);
         var secret = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.AccessSecret);
 
         string region;
         try
         {
-            var locationResponse = await ExecuteAction(() => S3Client.GetBucketLocationAsync(bucketName));
-            if (locationResponse.Location.Value is null || String.IsNullOrEmpty(locationResponse.Location.Value))
-            { 
-                region = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.Region).Value; 
-            }
-            else
-            { 
-                region = locationResponse.Location.Value; 
-            }
+            var headBucketRequest = new HeadBucketRequest { BucketName = bucketName };
+            var headBucketResponse = await ExecuteAction(() => S3Client.HeadBucketAsync(headBucketRequest));
+            region = string.IsNullOrEmpty(headBucketResponse.BucketRegion)
+                ? InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.Region).Value 
+                : headBucketResponse.BucketRegion;
         }
         catch (Exception)
         {
@@ -65,7 +75,7 @@ public class AmazonInvocable : BaseInvocable
         var defaultRegion = RegionEndpoint.GetBySystemName(systemRegion);
 
         if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(secret))
-            throw new PluginMisconfigurationException(ExceptionMessages.CredentialsMissing);
+            throw new PluginMisconfigurationException("AWS User credentials missing. You need to specify access key and access secret to use Amazon S3");
 
         return new(key, secret, new AmazonSimpleNotificationServiceConfig()
         {

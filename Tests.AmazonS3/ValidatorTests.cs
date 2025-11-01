@@ -1,6 +1,7 @@
 using Apps.AmazonS3.Connections;
 using Blackbird.Applications.Sdk.Common.Authentication;
-using Newtonsoft.Json;
+using Blackbird.Applications.Sdk.Common.Invocation;
+using System.Reflection;
 using Tests.AmazonS3.Base;
 
 namespace Tests.AmazonS3;
@@ -8,32 +9,41 @@ namespace Tests.AmazonS3;
 [TestClass]
 public class ValidatorTests : TestBase
 {
+    // can't use parent method directly in DynamicData decorator as studio can't see it and shows a warning
+    public static string? GetConnectionTypeName(MethodInfo method, object[]? data) => GetConnectionTypeFromDynamicData(method, data);
+
     [TestMethod]
-    public async Task ValidatesCorrectConnection()
+    [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task ValidatesCorrectConnection(InvocationContext context)
     {
+        // Arrange
         var validator = new ConnectionValidator();
 
-        var result = await validator.ValidateConnection(Creds, CancellationToken.None);
-        Console.WriteLine(result.Message);
+        // Act
+        var result = await validator.ValidateConnection(
+            context.AuthenticationCredentialsProviders,
+            CancellationToken.None);
+
+        // Assert
+        PrintResult(result);
         Assert.IsTrue(result.IsValid);
     }
 
     [TestMethod]
-    public async Task DoesNotValidateIncorrectConnection()
+    [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task DoesNotValidateIncorrectConnection(InvocationContext context)
     {
+        // Arrange
         var validator = new ConnectionValidator();
 
-        var newCreds = Creds.Select(x => new AuthenticationCredentialsProvider(x.KeyName, x.Value + "_incorrect"));
-        var result = await validator.ValidateConnection(newCreds, CancellationToken.None);
-        Console.WriteLine(result.Message);
+        var wrongCredentials = context.AuthenticationCredentialsProviders
+            .Select(x => new AuthenticationCredentialsProvider(x.KeyName, x.Value + "_incorrect"));
+
+        // Act
+        var result = await validator.ValidateConnection(wrongCredentials, CancellationToken.None);
+
+        // Assert
+        PrintResult(result);
         Assert.IsFalse(result.IsValid);
-    }
-
-    [TestMethod]
-    public void ShowConnectionDefinition()
-    {
-        var definition = new ConnectionDefinition();
-
-        Console.WriteLine(JsonConvert.SerializeObject(definition.ConnectionPropertyGroups, Formatting.Indented));
     }
 }

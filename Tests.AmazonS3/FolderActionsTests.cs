@@ -2,6 +2,8 @@ using Amazon.S3.Model;
 using Apps.AmazonS3;
 using Apps.AmazonS3.Actions;
 using Apps.AmazonS3.Models.Request;
+using Blackbird.Applications.Sdk.Common.Invocation;
+using System.Reflection;
 using Tests.AmazonS3.Base;
 
 namespace Tests.AmazonS3;
@@ -9,20 +11,76 @@ namespace Tests.AmazonS3;
 [TestClass]
 public class FolderActionsTests : TestBase
 {
-    private readonly FolderActions Actions;
-
     private readonly string TestFolderName = Guid.NewGuid().ToString() + '/';
     private readonly string TestParentFolder = Guid.NewGuid().ToString() + '/';
 
-    public FolderActionsTests()
+    // can't use parent method directly in DynamicData decorator as studio can't see it and shows a warning
+    public static string? GetConnectionTypeName(MethodInfo method, object[]? data) => GetConnectionTypeFromDynamicData(method, data);
+
+    [TestMethod]
+    [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task Create_folder_works(InvocationContext context)
     {
-        Actions = new FolderActions(InvocationContext);
+        // Arrange
+        await SetupTestFolder(context);
+        var actions = new FolderActions(context);
+
+        try
+        {
+            var bucketRequest = new BucketRequest { BucketName = TestBucketName };
+            var folderRequest = new FolderRequest
+            {
+                FolderId = TestFolderName,
+                ParentFolderId = TestParentFolder,
+            };
+
+            // Act
+            var response = await actions.CreateFolder(bucketRequest, folderRequest);
+
+            // Assert
+            PrintResult(response);
+            Assert.AreEqual(TestParentFolder + TestFolderName, response.FolderId);
+        }
+        finally
+        {
+            // Cleanup
+            await CleanupTestFolder(context);
+        }
     }
 
-    [TestInitialize]
-    public async Task TestInitialize()
+    [TestMethod]
+    [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task Delete_folder_works(InvocationContext context)
     {
-        var s3BucketClient = await new AmazonInvocable(InvocationContext).CreateBucketClient(TestBucketName);
+        // Arrange
+        await SetupTestFolder(context);
+        var actions = new FolderActions(context);
+
+        try
+        {
+            var bucketRequest = new BucketRequest { BucketName = TestBucketName };
+            var folderRequest = new FolderRequest
+            {
+                FolderId = TestFolderName,
+                ParentFolderId = TestParentFolder
+            };
+
+            // Act
+            await actions.DeleteFolder(bucketRequest, folderRequest);
+        }
+        finally
+        {
+            // Cleanup
+            await CleanupTestFolder(context);
+        }
+    }
+
+    #region Helper Methods for Setup and Cleanup
+
+    private async Task SetupTestFolder(InvocationContext context)
+    {
+        var s3BucketClient = await new AmazonInvocable(context)
+            .CreateBucketClient(TestBucketName);
 
         await s3BucketClient.PutObjectAsync(new PutObjectRequest
         {
@@ -32,10 +90,10 @@ public class FolderActionsTests : TestBase
         });
     }
 
-    [TestCleanup]
-    public async Task TestCleanup()
+    private async Task CleanupTestFolder(InvocationContext context)
     {
-        var s3BucketClient = await new AmazonInvocable(InvocationContext).CreateBucketClient(TestBucketName);
+        var s3BucketClient = await new AmazonInvocable(context)
+            .CreateBucketClient(TestBucketName);
 
         var deleteRequest = new DeleteObjectsRequest
         {
@@ -49,7 +107,8 @@ public class FolderActionsTests : TestBase
             Prefix = TestParentFolder
         };
 
-        await foreach (var s3Object in s3BucketClient.Paginators.ListObjectsV2(listRequest).S3Objects)
+        await foreach (var s3Object in s3BucketClient.Paginators
+            .ListObjectsV2(listRequest).S3Objects)
         {
             deleteRequest.Objects.Add(new KeyVersion { Key = s3Object.Key });
         }
@@ -57,63 +116,43 @@ public class FolderActionsTests : TestBase
         await s3BucketClient.DeleteObjectsAsync(deleteRequest);
     }
 
-    [TestMethod]
-    public async Task Create_folder_works()
-    {
-        var bucketRequest = new BucketRequest { BucketName = TestBucketName };
-        var folderRequest = new FolderRequest
-        {
-            FolderId = TestFolderName,
-            ParentFolderId = TestParentFolder,
-        };
-
-        var response = await Actions.CreateFolder(bucketRequest, folderRequest);
-
-        Assert.IsNotNull(response);
-    }
-
-    [TestMethod]
-    public async Task Delete_folder_works()
-    {
-        var bucketRequest = new BucketRequest { BucketName = TestBucketName };
-        var folderRequest = new FolderRequest
-        {
-            FolderId = TestFolderName,
-            ParentFolderId = TestParentFolder
-        };
-
-        await Actions.DeleteFolder(bucketRequest, folderRequest);
-    }
+    #endregion
 }
 
 [TestClass]
-public class FolderRequestTests
+public class FolderRequestTests : TestBase
 {
     [TestMethod]
     public void FolderRequest_GetKey_WithOnlyFolderId_ReturnsFolderIdWithTrailingSlash()
     {
+        // Arrange
         var request = new FolderRequest
         {
             FolderId = "/my-folder",
             ParentFolderId = string.Empty
         };
 
+        //Act
         var key = request.GetKey();
 
+        // Assert
         Assert.AreEqual("my-folder/", key);
     }
 
     [TestMethod]
     public void FolderRequest_GetKey_WithParentFolderIdAndFolderId_ReturnsCombinedKeyWithTrailingSlash()
     {
+        // Arrange
         var request = new FolderRequest
         {
             FolderId = "/child-folder/",
             ParentFolderId = "/parent-folder/"
         };
 
+        // Act
         var key = request.GetKey();
 
+        // Assert
         Assert.AreEqual("parent-folder/child-folder/", key);
     }
 }

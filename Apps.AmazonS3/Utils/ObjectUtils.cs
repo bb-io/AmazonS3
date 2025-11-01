@@ -1,7 +1,6 @@
 ﻿using Amazon.S3.Model;
 using Apps.AmazonS3.Constants;
 using Apps.AmazonS3.Models.Request;
-using Apps.AmazonS3.Polling.Models;
 
 namespace Apps.AmazonS3.Utils;
 

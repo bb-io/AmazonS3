@@ -1,4 +1,4 @@
-namespace Apps.AmazonS3.Polling.Models.Memory;
+namespace Apps.AmazonS3.Polling;
 
 public class DateMemory
 {

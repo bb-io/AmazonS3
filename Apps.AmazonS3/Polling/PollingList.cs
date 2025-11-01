@@ -1,7 +1,6 @@
 using Amazon.S3.Model;
 using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Response;
-using Apps.AmazonS3.Polling.Models.Memory;
 using Apps.AmazonS3.Utils;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Polling;
@@ -19,6 +18,8 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
         [PollingEventParameter] BucketRequest bucket,
         [PollingEventParameter] SearchFilesRequest folderRequest)
     {
+        bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
+
         if (request.Memory == null)
         {
             return new()
@@ -35,10 +36,10 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
 
         try
         {
-            var client = await CreateBucketClient(bucket.BucketName);
+            var client = await CreateBucketClient(bucket.BucketName!);
             var objects = client.Paginators.ListObjectsV2(new()
             {
-                BucketName = bucket.BucketName,
+                BucketName = bucket.BucketName!,
                 Prefix = folderRequest.FolderId
             });
 
@@ -60,25 +61,20 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
         catch (Exception ex)
         {
             var errorMessage = "[AmazonS3 polling] Got an error while polling. "
-                + $"Method: OnFilesUpdated"
+                + $"Method: OnFilesUpdated "
                 + $"Exception message: {ex.Message}";
 
             InvocationContext.Logger?.LogError(errorMessage, [ex.Message]);
             throw;
         }
 
-        if (result.Count == 0)
-            return new()
-            {
-                FlyBird = false,
-                Memory = new() { LastInteractionDate = DateTime.UtcNow }
-            };
-
         return new()
         {
-            FlyBird = true,
+            FlyBird = result.Count > 0,
             Memory = new() { LastInteractionDate = DateTime.UtcNow },
-            Result = new() { Files = result.Select(x => new FileResponse(x)) }
+            Result = result.Count > 0
+                ? new() { Files = result.Select(x => new FileResponse(x)) }
+                : null
         };
     }
 }

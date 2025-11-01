@@ -15,14 +15,16 @@ public class FolderActions (InvocationContext invocationContext) : AmazonInvocab
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] FolderRequest folderRequest)
     {
+        bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
+
         var createFolderRequest = new PutObjectRequest
         {
-            BucketName = bucket.BucketName,
+            BucketName = bucket.BucketName!,
             Key = folderRequest.GetKey(),
             ContentBody = string.Empty,
         };
 
-        var client = await CreateBucketClient(bucket.BucketName);
+        var client = await CreateBucketClient(bucket.BucketName!);
         await ExecuteAction(() => client.PutObjectAsync(createFolderRequest));
 
         return new FolderResponse { FolderId = folderRequest.GetKey() };
@@ -33,13 +35,15 @@ public class FolderActions (InvocationContext invocationContext) : AmazonInvocab
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] FolderRequest folderRequest)
     {
+        bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
+
         var request = new DeleteObjectRequest
         {
-            BucketName = bucket.BucketName,
+            BucketName = bucket.BucketName!,
             Key = folderRequest.GetKey(),
         };
 
-        var client = await CreateBucketClient(bucket.BucketName);
+        var client = await CreateBucketClient(bucket.BucketName!);
         await ExecuteAction(() => client.DeleteObjectAsync(request));
     }
 }

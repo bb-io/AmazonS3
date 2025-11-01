@@ -20,6 +20,8 @@ You can find how to get the `Access key` and `Access secret` [here](https://supp
 
 ## Connecting
 
+You can connect to all buckets or to a specific bucket using the dropdown to select connection type.
+
 1. Navigate to Apps, and identify the **Amazon S3** app. You can use search to find it.
 2. Click _Add Connection_.
 3. Name your connection for future reference e.g. 'My X connection'.
