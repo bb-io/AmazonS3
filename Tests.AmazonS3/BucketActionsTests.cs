@@ -1,7 +1,6 @@
 ﻿using Apps.AmazonS3;
 using Apps.AmazonS3.Actions;
 using Apps.AmazonS3.DataSourceHandlers;
-using Apps.AmazonS3.Models.Request;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;

@@ -83,7 +83,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
 
     [BlueprintActionDefinition(BlueprintAction.UploadFile)]
     [Action("Upload file", Description = "Upload a file to an S3 bucket.")]
-    public async Task UploadObject(
+    public async Task<FileUploadResponse> UploadObject(
         [ActionParameter] BucketRequest bucket, 
         [ActionParameter] UploadFileRequest uploadRequest)
     {
@@ -114,7 +114,14 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         }
 
         var client = await CreateBucketClient(bucket.BucketName!);
-        await ExecuteAction(() => client.PutObjectAsync(request));
+        var uploadResult = await ExecuteAction(() => client.PutObjectAsync(request));
+
+        return new()
+        {
+            FileId = key,
+            ETag = uploadResult.ETag,
+            BucketName = bucket.BucketName!,
+        };
     }
 
     [Action("Delete file", Description = "Delete a file in an S3 bucket.")]

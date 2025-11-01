@@ -59,11 +59,12 @@ public class ObjectActionsTest : TestBase
         var upload = new UploadFileRequest { File = new FileReference { Name = TestFileName } };
 
         // Act
-        await actions.UploadObject(bucket, upload);
+        var result = await actions.UploadObject(bucket, upload);
 
         // Assert
         var check = await actions.ListObjectsInBucket(bucket, new());
         Assert.IsTrue(check.Files.Any(x => x.FileId == TestFileName));
+        Assert.AreEqual(TestFileName, result.FileId);
 
         // Clean up
         await actions.DeleteObject(bucket, new() { FileId = TestFileName });
