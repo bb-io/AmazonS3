@@ -12,49 +12,49 @@ public class WebhookList(InvocationContext invocationContext) : AmazonInvocable(
 {
     [Webhook("On file or folder created",
         typeof(ObjectCreatedWebhookHandler),
-        Description = "On object created in the bucket")]
+        Description = "Triggered when an object is created in the bucket.")]
     public Task<WebhookResponse<S3WebhookResponse>> OnObjectCreated(WebhookRequest request)
         => HandleWebhook(request);
 
     [Webhook("On file or folder delete marker created",
         typeof(ObjectDeleteMarkerCreatedWebhookHandler),
-        Description = "On delete marker created for a specific objects")]
+        Description = "Triggered when a delete marker is created for a specific object.")]
     public Task<WebhookResponse<S3WebhookResponse>> OnObjectDeleteMarkerCreated(WebhookRequest request)
         => HandleWebhook(request);
 
     [Webhook("On file or folder deleted",
         typeof(ObjectPermanentlyDeletedWebhookHandler),
-        Description = "On object permanently deleted")]
+        Description = "Triggered when an object is permanently deleted from the bucket.")]
     public Task<WebhookResponse<S3WebhookResponse>> OnObjectDeleted(WebhookRequest request)
         => HandleWebhook(request);
 
     [Webhook("On file or folder restore completed",
         typeof(ObjectRestoreCompletedWebhookHandler),
-        Description = "On restore completed for a specific object")]
+        Description = "Triggered when a restore operation for a specific object is completed.")]
     public Task<WebhookResponse<S3WebhookResponse>> OnObjectRestoreCompleted(WebhookRequest request)
         => HandleWebhook(request);
 
     [Webhook("On file or folder restore expired",
         typeof(ObjectRestoreExpiredWebhookHandler),
-        Description = "On restore expired for a specific object")]
+        Description = "Triggered when a restore operation for a specific object expires.")]
     public Task<WebhookResponse<S3WebhookResponse>> OnObjectRestoreExpired(WebhookRequest request)
         => HandleWebhook(request);
 
     [Webhook("On file or folder restore initiated",
         typeof(ObjectRestoreInitiatedWebhookHandler),
-        Description = "On restore initiated for a specific object")]
+        Description = "Triggered when a restore operation for a specific object is initiated.")]
     public Task<WebhookResponse<S3WebhookResponse>> OnObjectRestoreInitiated(WebhookRequest request)
         => HandleWebhook(request);
 
     [Webhook("On file or folder tag added",
         typeof(ObjectTagAddedWebhookHandler),
-        Description = "On tag added for a specific object")]
+        Description = "Triggered when a tag is added to a specific object.")]
     public Task<WebhookResponse<S3WebhookResponse>> OnObjectTagAdded(WebhookRequest request)
         => HandleWebhook(request);
 
     [Webhook("On file or folder tag removed",
         typeof(ObjectTagRemovedWebhookHandler),
-        Description = "On tag removed for a specific object")]
+        Description = "Triggered when a tag is removed from a specific object.")]
     public Task<WebhookResponse<S3WebhookResponse>> OnObjectTagRemoved(WebhookRequest request)
         => HandleWebhook(request);
 

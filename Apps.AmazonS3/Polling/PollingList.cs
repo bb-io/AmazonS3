@@ -12,7 +12,7 @@ namespace Apps.AmazonS3.Polling;
 public class PollingList(InvocationContext invocationContext) : AmazonInvocable(invocationContext)
 {
     [BlueprintEventDefinition(BlueprintEvent.FilesCreatedOrUpdated)]
-    [PollingEvent("On files updated", "On any file created or updated")]
+    [PollingEvent("On files updated", "Triggered when a file is created or updated in the bucket.")]
     public async Task<PollingEventResponse<DateMemory, FilesResponse>> OnFilesUpdated(
         PollingEventRequest<DateMemory> request,
         [PollingEventParameter] BucketRequest bucket,

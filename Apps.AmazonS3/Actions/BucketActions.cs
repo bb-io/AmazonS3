@@ -12,7 +12,7 @@ namespace Apps.AmazonS3.Actions;
 [ActionList("Buckets")]
 public class BucketActions(InvocationContext invocationContext) : AmazonInvocable(invocationContext)
 {
-    [Action("Create bucket", Description = "Create an S3 bucket.")]
+    [Action("Create bucket", Description = "Create a new S3 bucket.")]
     public async Task<BucketResponse> CreateBucket([ActionParameter] [Display("Bucket name")] string bucketName)
     {
         if (CurrentConnectionType != ConnectionTypes.AllBuckets)
@@ -29,7 +29,7 @@ public class BucketActions(InvocationContext invocationContext) : AmazonInvocabl
         return new() { BucketName = bucketName };
     }
 
-    [Action("Delete bucket", Description = "Delete an S3 bucket.")]
+    [Action("Delete bucket", Description = "Delete an existing S3 bucket.")]
     public async Task DeleteBucket([ActionParameter] BucketRequest bucket)
     {
         if (CurrentConnectionType != ConnectionTypes.AllBuckets)

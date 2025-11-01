@@ -10,7 +10,7 @@ namespace Apps.AmazonS3.Actions;
 [ActionList("Folders")]
 public class FolderActions (InvocationContext invocationContext) : AmazonInvocable(invocationContext)
 {
-    [Action("Create folder", Description = "Create a folder in a bucket")]
+    [Action("Create folder", Description = "Create a folder in an S3 bucket.")]
     public async Task<FolderResponse> CreateFolder(
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] FolderRequest folderRequest)
@@ -30,7 +30,7 @@ public class FolderActions (InvocationContext invocationContext) : AmazonInvocab
         return new FolderResponse { FolderId = folderRequest.GetKey() };
     }
 
-    [Action("Delete folder", Description = "Delete a folder from a bucket")]
+    [Action("Delete folder", Description = "Delete a folder in an S3 bucket.")]
     public async Task DeleteFolder(
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] FolderRequest folderRequest)

@@ -14,7 +14,7 @@ namespace Apps.AmazonS3.Actions;
 [ActionList("Files")]
 public class ObjectActions (InvocationContext invocationContext, IFileManagementClient fileManagementClient) : AmazonInvocable(invocationContext)
 {
-    [Action("Search files", Description = "Search for objects in a specific bucket")]
+    [Action("Search files", Description = "Search for files in a specific S3 bucket.")]
     public async Task<FilesResponse> ListObjectsInBucket(
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] SearchFilesRequest searchRequest)
@@ -52,7 +52,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
     }
 
     [BlueprintActionDefinition(BlueprintAction.DownloadFile)]
-    [Action("Download file", Description = "Download a file from a bucket")]
+    [Action("Download file", Description = "Download a file from an S3 bucket.")]
     public async Task<DownloadFileResponse> GetObject(
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] FileRequest fileRequest)
@@ -82,7 +82,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
     }
 
     [BlueprintActionDefinition(BlueprintAction.UploadFile)]
-    [Action("Upload file", Description = "Upload a file to a bucket")]
+    [Action("Upload file", Description = "Upload a file to an S3 bucket.")]
     public async Task UploadObject(
         [ActionParameter] BucketRequest bucket, 
         [ActionParameter] UploadFileRequest uploadRequest)
@@ -117,7 +117,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         await ExecuteAction(() => client.PutObjectAsync(request));
     }
 
-    [Action("Delete file", Description = "Delete a file from the S3 bucket.")]
+    [Action("Delete file", Description = "Delete a file in an S3 bucket.")]
     public async Task DeleteObject(
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] FileRequest fileRequest)
