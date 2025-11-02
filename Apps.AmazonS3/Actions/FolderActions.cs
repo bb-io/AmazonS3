@@ -13,7 +13,7 @@ public class FolderActions (InvocationContext invocationContext) : AmazonInvocab
     [Action("Create folder", Description = "Create a folder in an S3 bucket.")]
     public async Task<FolderResponse> CreateFolder(
         [ActionParameter] BucketRequest bucket,
-        [ActionParameter] FolderRequest folderRequest)
+        [ActionParameter] CreateFolderRequest folderRequest)
     {
         bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
 

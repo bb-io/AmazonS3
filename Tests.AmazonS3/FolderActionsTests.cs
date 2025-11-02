@@ -28,9 +28,9 @@ public class FolderActionsTests : TestBase
         try
         {
             var bucketRequest = new BucketRequest { BucketName = TestBucketName };
-            var folderRequest = new FolderRequest
+            var folderRequest = new CreateFolderRequest
             {
-                FolderId = TestFolderName,
+                FolderName = TestFolderName,
                 ParentFolderId = TestParentFolder,
             };
 
