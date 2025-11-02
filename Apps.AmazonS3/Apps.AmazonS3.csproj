@@ -3,6 +3,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Product>Amazon S3</Product>
     <Description>Object storage built to retrieve any amount of data from anywhere</Description>
     <Version>2.1.0</Version>

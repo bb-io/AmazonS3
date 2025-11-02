@@ -40,7 +40,7 @@ public class FolderActions (InvocationContext invocationContext) : AmazonInvocab
         var request = new DeleteObjectRequest
         {
             BucketName = bucket.BucketName!,
-            Key = folderRequest.GetKey(),
+            Key = folderRequest.FolderId,
         };
 
         var client = await CreateBucketClient(bucket.BucketName!);

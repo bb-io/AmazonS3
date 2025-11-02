@@ -1,7 +1,10 @@
 using Amazon.S3.Model;
+using Apps.AmazonS3.DataSourceHandlers.Static;
 using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Response;
 using Apps.AmazonS3.Utils;
+using Blackbird.Applications.Sdk.Common;
+using Blackbird.Applications.Sdk.Common.Dictionaries;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Polling;
 using Blackbird.Applications.SDK.Blueprints;
@@ -16,7 +19,8 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
     public async Task<PollingEventResponse<DateMemory, FilesResponse>> OnFilesUpdated(
         PollingEventRequest<DateMemory> request,
         [PollingEventParameter] BucketRequest bucket,
-        [PollingEventParameter] SearchFilesRequest folderRequest)
+        [PollingEventParameter] FolderRequest folderRequest,
+        [PollingEventParameter, Display("Folder relation"), StaticDataSource(typeof(FolderRelationTriggerDataHandler))] string? folderRelationTrigger)
     {
         bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
 
@@ -52,7 +56,7 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
                 if (s3Object.Key.EndsWith('/') && s3Object.Size == 0)
                     continue;
 
-                if (!ObjectUtils.IsObjectInFolder(s3Object, folderRequest))
+                if (!ObjectUtils.IsObjectInFolder(s3Object, folderRequest.FolderId, folderRelationTrigger))
                     continue;
 
                 result.Add(s3Object);

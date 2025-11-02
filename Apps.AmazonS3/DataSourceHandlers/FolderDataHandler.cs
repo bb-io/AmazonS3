@@ -3,6 +3,7 @@ using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems;
+using System.Web;
 
 namespace Apps.AmazonS3.DataSourceHandlers;
 
@@ -28,7 +29,7 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
     {
         var currentFolder = context.FolderId == "root" || string.IsNullOrEmpty(context.FolderId)
             ? string.Empty
-            : context.FolderId.TrimEnd('/') + '/';
+            : HttpUtility.UrlDecode(context.FolderId);
 
         var client = await CreateBucketClient(_bucketName);
         var objects = client.Paginators.ListObjectsV2(new()
@@ -57,7 +58,7 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
 
             content.Add(new Folder()
             {
-                Id = s3Object.Key.TrimEnd('/'), // platform doesn't support IDs with `/` at the end
+                Id = HttpUtility.UrlEncode(s3Object.Key),
                 DisplayName = folderName,
                 Date = s3Object.LastModified,
                 IsSelectable = true,
@@ -80,7 +81,7 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
         if (string.IsNullOrEmpty(context?.FileDataItemId))
             return Task.FromResult<IEnumerable<FolderPathItem>>(path);
 
-        var folders = context.FileDataItemId.TrimEnd('/').Split('/');
+        var folders = HttpUtility.UrlDecode(context.FileDataItemId).TrimEnd('/').Split('/');
         if (folders.Length == 0)
         {
             path.Add(new() { DisplayName = context.FileDataItemId, Id = context.FileDataItemId });
@@ -95,7 +96,7 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
             path.Add(new()
             {
                 DisplayName = folder,
-                Id = currentPath.TrimEnd('/')
+                Id = HttpUtility.UrlEncode(currentPath),
             });
         }
 

@@ -13,6 +13,7 @@ public class FolderActionsTests : TestBase
 {
     private readonly string TestFolderName = Guid.NewGuid().ToString() + '/';
     private readonly string TestParentFolder = Guid.NewGuid().ToString() + '/';
+    private string TestFolderId => TestParentFolder + TestFolderName;
 
     // can't use parent method directly in DynamicData decorator as studio can't see it and shows a warning
     public static string? GetConnectionTypeName(MethodInfo method, object[]? data) => GetConnectionTypeFromDynamicData(method, data);
@@ -61,8 +62,7 @@ public class FolderActionsTests : TestBase
             var bucketRequest = new BucketRequest { BucketName = TestBucketName };
             var folderRequest = new FolderRequest
             {
-                FolderId = TestFolderName,
-                ParentFolderId = TestParentFolder
+                FolderId = TestFolderId
             };
 
             // Act
@@ -123,12 +123,65 @@ public class FolderActionsTests : TestBase
 public class FolderRequestTests : TestBase
 {
     [TestMethod]
-    public void FolderRequest_GetKey_WithOnlyFolderId_ReturnsFolderIdWithTrailingSlash()
+    public void FolderRequest_Getter_ReturnsUrlDecoded()
     {
         // Arrange
         var request = new FolderRequest
         {
-            FolderId = "/my-folder",
+            FolderId = "parent-folder%2fchild-folder%2f",
+        };
+
+        // Act
+        var key = request.FolderId;
+
+        // Assert
+        Assert.AreEqual("parent-folder/child-folder/", key);
+    }
+
+    [TestMethod]
+    public void FolderRequest_Getter_SupportsAsIs()
+    {
+        // Arrange
+        var request = new FolderRequest
+        {
+            FolderId = "parent-folder/child-folder/",
+        };
+
+        // Act
+        var key = request.FolderId;
+
+        // Assert
+        Assert.AreEqual("parent-folder/child-folder/", key);
+    }
+}
+
+[TestClass]
+public class CreateFolderRequestTests : TestBase
+{
+    [TestMethod]
+    public void CreateFolderRequest_GetKey_ReturnsUrlDecoded()
+    {
+        // Arrange
+        var request = new CreateFolderRequest
+        {
+            FolderName = "child-folder",
+            ParentFolderId = "%2fparent-folder%2f"
+        };
+
+        // Act
+        var key = request.GetKey();
+
+        // Assert
+        Assert.AreEqual("parent-folder/child-folder/", key);
+    }
+
+    [TestMethod]
+    public void CreateFolderRequest_GetKey_WithOnlyFolderId_ReturnsFolderIdWithTrailingSlash()
+    {
+        // Arrange
+        var request = new CreateFolderRequest
+        {
+            FolderName = "/my-folder",
             ParentFolderId = string.Empty
         };
 
@@ -140,12 +193,29 @@ public class FolderRequestTests : TestBase
     }
 
     [TestMethod]
-    public void FolderRequest_GetKey_WithParentFolderIdAndFolderId_ReturnsCombinedKeyWithTrailingSlash()
+    public void CreateFolderRequest_GetKey_WithParentNull_Returns()
     {
         // Arrange
-        var request = new FolderRequest
+        var request = new CreateFolderRequest
         {
-            FolderId = "/child-folder/",
+            FolderName = "/my-folder",
+            ParentFolderId = null
+        };
+
+        //Act
+        var key = request.GetKey();
+
+        // Assert
+        Assert.AreEqual("my-folder/", key);
+    }
+
+    [TestMethod]
+    public void CreateFolderRequest_GetKey_WithParentFolderIdAndFolderId_ReturnsCombinedKeyWithTrailingSlash()
+    {
+        // Arrange
+        var request = new CreateFolderRequest
+        {
+            FolderName = "/child-folder/",
             ParentFolderId = "/parent-folder/"
         };
 

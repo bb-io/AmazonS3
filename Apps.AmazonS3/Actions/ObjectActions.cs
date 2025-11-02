@@ -1,9 +1,11 @@
 ﻿using Amazon.S3.Model;
+using Apps.AmazonS3.DataSourceHandlers.Static;
 using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Response;
 using Apps.AmazonS3.Utils;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
+using Blackbird.Applications.Sdk.Common.Dictionaries;
 using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Blueprints;
@@ -17,17 +19,18 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
     [Action("Search files", Description = "Search for files in a specific S3 bucket.")]
     public async Task<FilesResponse> ListObjectsInBucket(
         [ActionParameter] BucketRequest bucket,
-        [ActionParameter] SearchFilesRequest searchRequest)
+        [ActionParameter] FolderRequest folderRequest,
+        [Display("Folder relation"), StaticDataSource(typeof(FolderRelationTriggerDataHandler))] string? folderRelationTrigger)
     {
         bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
 
-        if (string.IsNullOrWhiteSpace(searchRequest.FolderId) || searchRequest.FolderId == "/")
-            searchRequest.FolderId = string.Empty;
+        if (string.IsNullOrWhiteSpace(folderRequest.FolderId) || folderRequest.FolderId == "/")
+            folderRequest.FolderId = string.Empty;
 
         var request = new ListObjectsV2Request()
         {
             BucketName = bucket.BucketName!,
-            Prefix = searchRequest.FolderId,
+            Prefix = folderRequest.FolderId,
         };
 
         var client = await CreateBucketClient(bucket.BucketName!);
@@ -40,7 +43,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
                 if (s3Object.Key.EndsWith('/') && s3Object.Size == 0)
                     continue;
 
-                if (!ObjectUtils.IsObjectInFolder(s3Object, searchRequest))
+                if (!ObjectUtils.IsObjectInFolder(s3Object, folderRequest.FolderId, folderRelationTrigger))
                     continue;
 
                 result.Add(new FileResponse(s3Object));
@@ -84,7 +87,8 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
     [BlueprintActionDefinition(BlueprintAction.UploadFile)]
     [Action("Upload file", Description = "Upload a file to an S3 bucket.")]
     public async Task<FileUploadResponse> UploadObject(
-        [ActionParameter] BucketRequest bucket, 
+        [ActionParameter] BucketRequest bucket,
+        [ActionParameter] FolderRequest folder,
         [ActionParameter] UploadFileRequest uploadRequest)
     {
         bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
@@ -94,7 +98,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
 
         await fileStream.CopyToAsync(memoryStream);
 
-        var folderId = uploadRequest.FolderId?.TrimEnd('/') ?? string.Empty;
+        var folderId = folder.FolderId?.TrimEnd('/') ?? string.Empty;
         var fileId = uploadRequest.FileId?.TrimStart('/') ?? uploadRequest.File.Name;
         var keyParts = new List<string> { folderId, fileId }.Where(part => !string.IsNullOrEmpty(part));
         var key = string.Join('/', keyParts).TrimStart('/');

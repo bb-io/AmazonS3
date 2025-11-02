@@ -1,4 +1,5 @@
-﻿using Apps.AmazonS3.Actions;
+﻿using Amazon.Runtime.Internal.Util;
+using Apps.AmazonS3.Actions;
 using Apps.AmazonS3.Models.Request;
 using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
@@ -22,10 +23,10 @@ public class ObjectActionsTest : TestBase
         // Arrange
         var actions = new ObjectActions(context, FileManager);
         var bucket = new BucketRequest { BucketName = TestBucketName };
-        var search = new SearchFilesRequest { };
+        var folder = new FolderRequest();
 
         // Act
-        var result = await actions.ListObjectsInBucket(bucket, search);
+        var result = await actions.ListObjectsInBucket(bucket, folder, null);
 
         // Assert
         PrintResult(result);
@@ -39,10 +40,10 @@ public class ObjectActionsTest : TestBase
         // Arrange
         var actions = new ObjectActions(context, FileManager);
         var bucket = new BucketRequest { BucketName = TestBucketName };
-        var search = new SearchFilesRequest { FolderId = "fol/" };
+        var folder = new FolderRequest { FolderId = "fol/" };
 
         // Act
-        var result = await actions.ListObjectsInBucket(bucket, search);
+        var result = await actions.ListObjectsInBucket(bucket, folder, null);
 
         // Assert
         PrintResult(result);
@@ -56,13 +57,14 @@ public class ObjectActionsTest : TestBase
         // Arrange
         var actions = new ObjectActions(context, FileManager);
         var bucket = new BucketRequest { BucketName = TestBucketName };
+        var folder = new FolderRequest();
         var upload = new UploadFileRequest { File = new FileReference { Name = TestFileName } };
 
         // Act
-        var result = await actions.UploadObject(bucket, upload);
+        var result = await actions.UploadObject(bucket, folder, upload);
 
         // Assert
-        var check = await actions.ListObjectsInBucket(bucket, new());
+        var check = await actions.ListObjectsInBucket(bucket, new(), null);
         Assert.IsTrue(check.Files.Any(x => x.FileId == TestFileName));
         Assert.AreEqual(TestFileName, result.FileId);
 
@@ -77,20 +79,17 @@ public class ObjectActionsTest : TestBase
         // Arrange
         var actions = new ObjectActions(context, FileManager);
         var bucket = new BucketRequest { BucketName = TestBucketName };
-        var upload = new UploadFileRequest
-        {
-            File = new FileReference { Name = TestFileName },
-            FolderId = "fol",
-        };
+        var folder = new FolderRequest { FolderId = "fol/" };
+        var upload = new UploadFileRequest { File = new FileReference { Name = TestFileName } };
 
         // Act
-        var result = await actions.UploadObject(bucket, upload);
+        var result = await actions.UploadObject(bucket, folder, upload);
 
         // Assert
         var expectedKey = $"fol/{TestFileName}";
         Assert.AreEqual(expectedKey, result.FileId);
 
-        var check = await actions.ListObjectsInBucket(bucket, new());
+        var check = await actions.ListObjectsInBucket(bucket, new(), null);
         Assert.IsTrue(check.Files.Any(x => x.FileId == expectedKey));
         
 
@@ -123,17 +122,18 @@ public class ObjectActionsTest : TestBase
         var fileName = "simple-test.txt";
         var actions = new ObjectActions(context, FileManager);
         var bucket = new BucketRequest { BucketName = TestBucketName };
+        var folder = new FolderRequest();
 
         var upload = new UploadFileRequest { File = new FileReference { Name = fileName } };
-        await actions.UploadObject(bucket, upload);
-        var before = await actions.ListObjectsInBucket(bucket, new());
+        await actions.UploadObject(bucket, folder, upload);
+        var before = await actions.ListObjectsInBucket(bucket, new(), null);
         Assert.IsTrue(before.Files.Any(x => x.FileId == fileName));
 
         // Act
         await actions.DeleteObject(bucket, new() { FileId = fileName });
 
         // Assert
-        var after = await actions.ListObjectsInBucket(bucket, new());
+        var after = await actions.ListObjectsInBucket(bucket, new(), null);
         PrintResult(after);
         Assert.IsFalse(after.Files.Any(x => x.FileId == fileName));
     }
