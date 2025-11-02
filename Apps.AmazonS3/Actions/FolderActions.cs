@@ -13,21 +13,31 @@ public class FolderActions (InvocationContext invocationContext) : AmazonInvocab
     [Action("Create folder", Description = "Create a folder in an S3 bucket.")]
     public async Task<FolderResponse> CreateFolder(
         [ActionParameter] BucketRequest bucket,
-        [ActionParameter] CreateFolderRequest folderRequest)
+        [ActionParameter, Display("Folder name")] string folderName,
+        [ActionParameter] FolderRequest parentFolder)
     {
         bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
+
+        var segments = new List<string>();
+
+        if (!string.IsNullOrWhiteSpace(parentFolder.FolderId))
+            segments.Add(parentFolder.FolderId.Trim('/'));
+        
+        segments.Add(folderName.Trim('/'));
+
+        var newFolderKey = string.Join('/', segments) + '/';
 
         var createFolderRequest = new PutObjectRequest
         {
             BucketName = bucket.BucketName!,
-            Key = folderRequest.GetKey(),
+            Key = newFolderKey,
             ContentBody = string.Empty,
         };
 
         var client = await CreateBucketClient(bucket.BucketName!);
         await ExecuteAction(() => client.PutObjectAsync(createFolderRequest));
 
-        return new FolderResponse { FolderId = folderRequest.GetKey() };
+        return new FolderResponse { FolderId = newFolderKey };
     }
 
     [Action("Delete folder", Description = "Delete a folder in an S3 bucket.")]
