@@ -1,17 +1,17 @@
 ﻿using Apps.AmazonS3.DataSourceHandlers;
 using Blackbird.Applications.Sdk.Common;
-using Blackbird.Applications.Sdk.Common.Dynamic;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems;
 
 namespace Apps.AmazonS3.Models.Request;
 
 public record FolderRequest
 {
     [Display("Folder name")]
-    [DataSource(typeof(FolderDataHandler))]
+    [FileDataSource(typeof(FolderDataHandler))]
     public string FolderId { get; set; } = string.Empty;
 
     [Display("Parent folder")]
-    [DataSource(typeof(FolderDataHandler))]
+    [FileDataSource(typeof(FolderDataHandler))]
     public string? ParentFolderId { get; set; } = string.Empty;
 
     public string GetKey()

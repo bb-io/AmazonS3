@@ -2,14 +2,14 @@
 using Apps.AmazonS3.DataSourceHandlers.Static;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Dictionaries;
-using Blackbird.Applications.Sdk.Common.Dynamic;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems;
 
 namespace Apps.AmazonS3.Models.Request;
 
 public class SearchFilesRequest
 {
     [Display("Folder", Description = "Folder path, eg /example/subfolder/")]
-    [DataSource(typeof(FolderDataHandler))]
+    [FileDataSource(typeof(FolderDataHandler))]
     public string? FolderId { get; set; }
 
     [Display("Folder relation")]

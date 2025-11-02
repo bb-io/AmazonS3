@@ -4,6 +4,7 @@ using Apps.AmazonS3.Models.Request;
 using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems;
 using System.Reflection;
 using Tests.AmazonS3.Base;
 
@@ -40,13 +41,13 @@ public class DataHandlerTests : TestBase
         var dataSourceContext = new DataSourceContext();
 
         // Act & Assert
-        await Assert.ThrowsExactlyAsync<PluginMisconfigurationException>(async () 
+        await Assert.ThrowsExactlyAsync<PluginMisconfigurationException>(async ()
             => await handler.GetDataAsync(dataSourceContext, CancellationToken.None));
     }
 
     [TestMethod]
     [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
-    public async Task FolderDataHandler_returns_items(InvocationContext context)
+    public async Task FolderDataHandler_returns_root_items(InvocationContext context)
     {
         // Arrange
         var amazonInvokable = new AmazonInvocable(context);
@@ -55,13 +56,87 @@ public class DataHandlerTests : TestBase
         bucket.ProvideConnectionType(amazonInvokable.CurrentConnectionType, amazonInvokable.ConnectedBucket);
 
         var handler = new FolderDataHandler(context, bucket);
-        var dataSourceContext = new DataSourceContext();
+        var dataSourceContext = new FolderContentDataSourceContext();
 
         // Act
-        var result = await handler.GetDataAsync(dataSourceContext, CancellationToken.None);
+        var result = await handler.GetFolderContentAsync(dataSourceContext, CancellationToken.None);
 
         // Assert
         PrintResult(result);
         Assert.IsTrue(result.Any());
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task FolderDataHandler_returns_folder_items(InvocationContext context)
+    {
+        // Arrange
+        var amazonInvokable = new AmazonInvocable(context);
+
+        var bucket = new BucketRequest { BucketName = TestBucketName };
+        bucket.ProvideConnectionType(amazonInvokable.CurrentConnectionType, amazonInvokable.ConnectedBucket);
+
+        var handler = new FolderDataHandler(context, bucket);
+        var dataSourceContext = new FolderContentDataSourceContext { FolderId = "fol/" };
+
+        // Act
+        var result = await handler.GetFolderContentAsync(dataSourceContext, CancellationToken.None);
+
+        // Assert
+        PrintResult(result);
+        Assert.IsTrue(result.Any());
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task FolderDataHandler_returns_root_path(InvocationContext context)
+    {
+        // Arrange
+        var amazonInvokable = new AmazonInvocable(context);
+
+        var bucket = new BucketRequest { BucketName = TestBucketName };
+        bucket.ProvideConnectionType(amazonInvokable.CurrentConnectionType, amazonInvokable.ConnectedBucket);
+
+        var handler = new FolderDataHandler(context, bucket);
+        var dataSourceContext = new FolderPathDataSourceContext();
+
+        // Act
+        var result = await handler.GetFolderPathAsync(dataSourceContext, CancellationToken.None);
+
+        // Assert
+        PrintResult(result);
+        Assert.AreEqual(1, result.Count());
+        Assert.AreEqual(string.Empty, result.First().Id);
+        Assert.AreEqual(bucket.BucketName, result.First().DisplayName);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task FolderDataHandler_returns_folder_path(InvocationContext context)
+    {
+        // Arrange
+        var amazonInvokable = new AmazonInvocable(context);
+
+        var bucket = new BucketRequest { BucketName = TestBucketName };
+        bucket.ProvideConnectionType(amazonInvokable.CurrentConnectionType, amazonInvokable.ConnectedBucket);
+
+        var handler = new FolderDataHandler(context, bucket);
+        var dataSourceContext = new FolderPathDataSourceContext { FileDataItemId = "fol/manually-tested-folder/" };
+
+        // Act
+        var result = await handler.GetFolderPathAsync(dataSourceContext, CancellationToken.None);
+
+        // Assert
+        PrintResult(result);
+        Assert.AreEqual(3, result.Count());
+
+        Assert.AreEqual(string.Empty, result.First().Id);
+        Assert.AreEqual(bucket.BucketName, result.First().DisplayName);
+
+        Assert.AreEqual("fol/", result.ElementAt(1).Id);
+        Assert.AreEqual("fol", result.ElementAt(1).DisplayName);
+
+        Assert.AreEqual("fol/manually-tested-folder/", result.ElementAt(2).Id);
+        Assert.AreEqual("manually-tested-folder", result.ElementAt(2).DisplayName);
     }
 }
