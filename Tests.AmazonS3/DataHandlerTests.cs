@@ -47,7 +47,7 @@ public class DataHandlerTests : TestBase
 
     [TestMethod]
     [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
-    public async Task FolderDataHandler_returns_root_items(InvocationContext context)
+    public async Task FolderDataHandler_returns_root_items_from_null(InvocationContext context)
     {
         // Arrange
         var amazonInvokable = new AmazonInvocable(context);
@@ -63,7 +63,32 @@ public class DataHandlerTests : TestBase
 
         // Assert
         PrintResult(result);
-        Assert.IsTrue(result.Any());
+        Assert.AreEqual(1, result.Count());
+        Assert.AreEqual("fol/", result.First().Id);
+        Assert.AreEqual("fol", result.First().DisplayName);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task FolderDataHandler_returns_root_items_from_root_id(InvocationContext context)
+    {
+        // Arrange
+        var amazonInvokable = new AmazonInvocable(context);
+
+        var bucket = new BucketRequest { BucketName = TestBucketName };
+        bucket.ProvideConnectionType(amazonInvokable.CurrentConnectionType, amazonInvokable.ConnectedBucket);
+
+        var handler = new FolderDataHandler(context, bucket);
+        var dataSourceContext = new FolderContentDataSourceContext { FolderId = "root" };
+
+        // Act
+        var result = await handler.GetFolderContentAsync(dataSourceContext, CancellationToken.None);
+
+        // Assert
+        PrintResult(result);
+        Assert.AreEqual(1, result.Count());
+        Assert.AreEqual("fol/", result.First().Id);
+        Assert.AreEqual("fol", result.First().DisplayName);
     }
 
     [TestMethod]
@@ -84,7 +109,9 @@ public class DataHandlerTests : TestBase
 
         // Assert
         PrintResult(result);
-        Assert.IsTrue(result.Any());
+        Assert.AreEqual(1, result.Count());
+        Assert.AreEqual("fol/manually-tested-folder/", result.First().Id);
+        Assert.AreEqual("manually-tested-folder", result.First().DisplayName);
     }
 
     [TestMethod]
@@ -106,7 +133,7 @@ public class DataHandlerTests : TestBase
         // Assert
         PrintResult(result);
         Assert.AreEqual(1, result.Count());
-        Assert.AreEqual(string.Empty, result.First().Id);
+        Assert.AreEqual("root", result.First().Id);
         Assert.AreEqual(bucket.BucketName, result.First().DisplayName);
     }
 
@@ -130,7 +157,7 @@ public class DataHandlerTests : TestBase
         PrintResult(result);
         Assert.AreEqual(3, result.Count());
 
-        Assert.AreEqual(string.Empty, result.First().Id);
+        Assert.AreEqual("root", result.First().Id);
         Assert.AreEqual(bucket.BucketName, result.First().DisplayName);
 
         Assert.AreEqual("fol/", result.ElementAt(1).Id);

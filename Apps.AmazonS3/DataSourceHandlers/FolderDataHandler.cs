@@ -31,7 +31,7 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
     public async Task<IEnumerable<FileDataItem>> GetFolderContentAsync(
         FolderContentDataSourceContext context, CancellationToken cancellationToken)
     {
-        var currentFolder = string.IsNullOrEmpty(context.FolderId)
+        var currentFolder = context.FolderId == "root" || string.IsNullOrEmpty(context.FolderId)
             ? string.Empty
             : context.FolderId;
 
@@ -79,7 +79,7 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
     {
         var path = new List<FolderPathItem>()
         {
-            new() { DisplayName = _bucketName, Id = string.Empty }
+            new() { DisplayName = _bucketName, Id = "root" }
         };
 
         if (string.IsNullOrEmpty(context?.FileDataItemId))
