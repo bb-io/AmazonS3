@@ -72,6 +72,34 @@ public class ObjectActionsTest : TestBase
 
     [TestMethod]
     [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task Upload_objectToFolder_works(InvocationContext context)
+    {
+        // Arrange
+        var actions = new ObjectActions(context, FileManager);
+        var bucket = new BucketRequest { BucketName = TestBucketName };
+        var upload = new UploadFileRequest
+        {
+            File = new FileReference { Name = TestFileName },
+            FolderId = "fol",
+        };
+
+        // Act
+        var result = await actions.UploadObject(bucket, upload);
+
+        // Assert
+        var expectedKey = $"fol/{TestFileName}";
+        Assert.AreEqual(expectedKey, result.FileId);
+
+        var check = await actions.ListObjectsInBucket(bucket, new());
+        Assert.IsTrue(check.Files.Any(x => x.FileId == expectedKey));
+        
+
+        // Clean up
+        await actions.DeleteObject(bucket, new() { FileId = expectedKey });
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
     public async Task Get_object_works(InvocationContext context)
     {
         // Arrange
