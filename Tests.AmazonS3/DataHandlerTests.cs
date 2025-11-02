@@ -64,7 +64,7 @@ public class DataHandlerTests : TestBase
         // Assert
         PrintResult(result);
         Assert.AreEqual(1, result.Count());
-        Assert.AreEqual("fol/", result.First().Id);
+        Assert.AreEqual("fol", result.First().Id);
         Assert.AreEqual("fol", result.First().DisplayName);
     }
 
@@ -87,7 +87,7 @@ public class DataHandlerTests : TestBase
         // Assert
         PrintResult(result);
         Assert.AreEqual(1, result.Count());
-        Assert.AreEqual("fol/", result.First().Id);
+        Assert.AreEqual("fol", result.First().Id);
         Assert.AreEqual("fol", result.First().DisplayName);
     }
 
@@ -102,7 +102,7 @@ public class DataHandlerTests : TestBase
         bucket.ProvideConnectionType(amazonInvokable.CurrentConnectionType, amazonInvokable.ConnectedBucket);
 
         var handler = new FolderDataHandler(context, bucket);
-        var dataSourceContext = new FolderContentDataSourceContext { FolderId = "fol/" };
+        var dataSourceContext = new FolderContentDataSourceContext { FolderId = "fol" };
 
         // Act
         var result = await handler.GetFolderContentAsync(dataSourceContext, CancellationToken.None);
@@ -110,7 +110,7 @@ public class DataHandlerTests : TestBase
         // Assert
         PrintResult(result);
         Assert.AreEqual(1, result.Count());
-        Assert.AreEqual("fol/manually-tested-folder/", result.First().Id);
+        Assert.AreEqual("fol/manually-tested-folder", result.First().Id);
         Assert.AreEqual("manually-tested-folder", result.First().DisplayName);
     }
 
@@ -160,10 +160,10 @@ public class DataHandlerTests : TestBase
         Assert.AreEqual("root", result.First().Id);
         Assert.AreEqual(bucket.BucketName, result.First().DisplayName);
 
-        Assert.AreEqual("fol/", result.ElementAt(1).Id);
+        Assert.AreEqual("fol", result.ElementAt(1).Id);
         Assert.AreEqual("fol", result.ElementAt(1).DisplayName);
 
-        Assert.AreEqual("fol/manually-tested-folder/", result.ElementAt(2).Id);
+        Assert.AreEqual("fol/manually-tested-folder", result.ElementAt(2).Id);
         Assert.AreEqual("manually-tested-folder", result.ElementAt(2).DisplayName);
     }
 }

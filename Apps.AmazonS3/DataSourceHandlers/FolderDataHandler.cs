@@ -1,13 +1,8 @@
-using Amazon.S3.Model;
-using Amazon.S3.Model.Internal.MarshallTransformations;
 using Apps.AmazonS3.Models.Request;
 using Blackbird.Applications.Sdk.Common;
-using Blackbird.Applications.Sdk.Common.Dynamic;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems;
-using System.Collections.Generic;
-using System.IO;
 
 namespace Apps.AmazonS3.DataSourceHandlers;
 
@@ -33,7 +28,7 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
     {
         var currentFolder = context.FolderId == "root" || string.IsNullOrEmpty(context.FolderId)
             ? string.Empty
-            : context.FolderId;
+            : context.FolderId.TrimEnd('/') + '/';
 
         var client = await CreateBucketClient(_bucketName);
         var objects = client.Paginators.ListObjectsV2(new()
@@ -62,7 +57,7 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
 
             content.Add(new Folder()
             {
-                Id = s3Object.Key,
+                Id = s3Object.Key.TrimEnd('/'), // platform doesn't support IDs with `/` at the end
                 DisplayName = folderName,
                 Date = s3Object.LastModified,
                 IsSelectable = true,
@@ -97,7 +92,11 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
         foreach (var folder in folders)
         {
             currentPath += folder + "/";
-            path.Add(new() { DisplayName = folder, Id = currentPath });
+            path.Add(new()
+            {
+                DisplayName = folder,
+                Id = currentPath.TrimEnd('/')
+            });
         }
 
         return Task.FromResult<IEnumerable<FolderPathItem>>(path);
