@@ -6,7 +6,9 @@ using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems;
 using System.Reflection;
+using System.Text.Json;
 using Tests.AmazonS3.Base;
+using File = Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems.File;
 
 namespace Tests.AmazonS3;
 
@@ -168,5 +170,100 @@ public class DataHandlerTests : TestBase
 
         Assert.AreEqual("fol/manually-tested-folder/", result.ElementAt(2).Id);
         Assert.AreEqual("manually-tested-folder", result.ElementAt(2).DisplayName);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task FileDataHandler_returns_root_items_from_null(InvocationContext context)
+    {
+        // Arrange
+        var amazonInvokable = new AmazonInvocable(context);
+
+        var bucket = new BucketRequest { BucketName = TestBucketName };
+        bucket.ProvideConnectionType(amazonInvokable.CurrentConnectionType, amazonInvokable.ConnectedBucket);
+
+        var handler = new FileDataHandler(context, bucket);
+        var dataSourceContext = new FolderContentDataSourceContext();
+
+        // Act
+        var result = await handler.GetFolderContentAsync(dataSourceContext, CancellationToken.None);
+
+        // Assert
+        PrintResult(result);
+        Assert.AreEqual(2, result.Count());
+
+        var file = result.ElementAt(0) as File ?? new();
+        Assert.AreEqual("basic-min.tbx", file.Id);
+        Assert.AreEqual("basic-min.tbx", file.DisplayName);
+        Assert.AreEqual(1807, file.Size);
+        Assert.IsTrue(file.IsSelectable);
+        Assert.AreEqual((int)FileDataItemType.File, file.Type);
+
+        Assert.AreEqual("fol/", result.ElementAt(1).Id);
+        Assert.AreEqual("fol", result.ElementAt(1).DisplayName);
+        Assert.IsFalse(result.ElementAt(1).IsSelectable);
+        Assert.AreEqual((int)FileDataItemType.Folder, result.ElementAt(1).Type);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task FileDataHandler_returns_root_items_from_root_id(InvocationContext context)
+    {
+        // Arrange
+        var amazonInvokable = new AmazonInvocable(context);
+
+        var bucket = new BucketRequest { BucketName = TestBucketName };
+        bucket.ProvideConnectionType(amazonInvokable.CurrentConnectionType, amazonInvokable.ConnectedBucket);
+
+        var handler = new FileDataHandler(context, bucket);
+        var dataSourceContext = new FolderContentDataSourceContext { FolderId = "root" };
+
+        // Act
+        var result = await handler.GetFolderContentAsync(dataSourceContext, CancellationToken.None);
+
+        // Assert
+        PrintResult(result);
+        Assert.AreEqual(2, result.Count());
+
+        Assert.AreEqual("basic-min.tbx", result.ElementAt(0).Id);
+        Assert.AreEqual("basic-min.tbx", result.ElementAt(0).DisplayName);
+        Assert.AreEqual((int)FileDataItemType.File, result.ElementAt(0).Type);
+
+        Assert.AreEqual("fol/", result.ElementAt(1).Id);
+        Assert.AreEqual("fol", result.ElementAt(1).DisplayName);
+        Assert.AreEqual((int)FileDataItemType.Folder, result.ElementAt(1).Type);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(InvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task FileDataHandler_returns_folder_items(InvocationContext context)
+    {
+        // Arrange
+        var amazonInvokable = new AmazonInvocable(context);
+
+        var bucket = new BucketRequest { BucketName = TestBucketName };
+        bucket.ProvideConnectionType(amazonInvokable.CurrentConnectionType, amazonInvokable.ConnectedBucket);
+
+        var handler = new FileDataHandler(context, bucket);
+        var dataSourceContext = new FolderContentDataSourceContext { FolderId = "fol/" };
+
+        // Act
+        var result = await handler.GetFolderContentAsync(dataSourceContext, CancellationToken.None);
+
+        // Assert
+        PrintResult(result);
+        Assert.AreEqual(3, result.Count());
+
+        Assert.AreEqual("fol/manual-test-from-doc.txt", result.ElementAt(0).Id);
+        Assert.AreEqual("manual-test-from-doc.txt", result.ElementAt(0).DisplayName);
+        Assert.AreEqual((int)FileDataItemType.File, result.ElementAt(0).Type);
+
+        Assert.AreEqual("fol/manually-tested-folder/", result.ElementAt(1).Id);
+        Assert.AreEqual("manually-tested-folder", result.ElementAt(1).DisplayName);
+        Assert.AreEqual((int)FileDataItemType.Folder, result.ElementAt(1).Type);
+
+        Assert.AreEqual("fol/maryland.tbx", result.ElementAt(2).Id);
+        Assert.AreEqual("maryland.tbx", result.ElementAt(2).DisplayName);
+        Assert.AreEqual((int)FileDataItemType.File, result.ElementAt(2).Type);
     }
 }

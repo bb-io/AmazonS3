@@ -2,7 +2,6 @@ using Apps.AmazonS3.Actions;
 using Apps.AmazonS3.Models.Request;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using System.Reflection;
-using System.Web;
 using Tests.AmazonS3.Base;
 
 namespace Tests.AmazonS3;
@@ -12,7 +11,6 @@ public class FolderActionsTests : TestBase
 {
     private readonly string TestFolderName = Guid.NewGuid().ToString() + '/';
     private readonly string TestParentFolder = Guid.NewGuid().ToString() + '/';
-    private string TestFolderId => TestParentFolder + TestFolderName;
 
     // can't use parent method directly in DynamicData decorator as studio can't see it and shows a warning
     public static string? GetConnectionTypeName(MethodInfo method, object[]? data) => GetConnectionTypeFromDynamicData(method, data);
