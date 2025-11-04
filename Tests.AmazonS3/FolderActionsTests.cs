@@ -38,12 +38,8 @@ public class FolderActionsTests : TestBase
             var newParentFolder = inputCombination.Item2;
             var expectedFolderKey = inputCombination.Item3;
 
-            var parentFolder = !string.IsNullOrEmpty(newParentFolder)
-                ? new FolderRequest { FolderId = newParentFolder }
-                : new();
-
             // Act
-            var createFolderResponse = await actions.CreateFolder(bucketRequest, newFolderName, parentFolder);
+            var createFolderResponse = await actions.CreateFolder(bucketRequest, newFolderName, newParentFolder);
 
             var deleteFolderRequest = new FolderRequest { FolderId = createFolderResponse.FolderId };
             await actions.DeleteFolder(bucketRequest, deleteFolderRequest);

@@ -1,9 +1,11 @@
 ﻿using Amazon.S3.Model;
+using Apps.AmazonS3.DataSourceHandlers;
 using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Response;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Invocation;
+using Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems;
 
 namespace Apps.AmazonS3.Actions;
 
@@ -13,15 +15,15 @@ public class FolderActions (InvocationContext invocationContext) : AmazonInvocab
     [Action("Create folder", Description = "Create a folder in an S3 bucket.")]
     public async Task<FolderResponse> CreateFolder(
         [ActionParameter] BucketRequest bucket,
-        [ActionParameter, Display("Folder name")] string folderName,
-        [ActionParameter] FolderRequest parentFolder)
+        [ActionParameter, Display("New folder name")] string folderName,
+        [ActionParameter, Display("Parent folder"), FileDataSource(typeof(FolderDataHandler))] string? parentFolderId)
     {
         bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
 
         var segments = new List<string>();
 
-        if (!string.IsNullOrWhiteSpace(parentFolder.FolderId))
-            segments.Add(parentFolder.FolderId.Trim('/'));
+        if (!string.IsNullOrWhiteSpace(parentFolderId))
+            segments.Add(parentFolderId.Trim('/'));
         
         segments.Add(folderName.Trim('/'));
 
