@@ -112,9 +112,9 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
             ContentType = uploadRequest.File.ContentType
         };
 
-        if (!string.IsNullOrEmpty(uploadRequest.ObjectMetadata))
+        if (!string.IsNullOrEmpty(uploadRequest.FileMetadata))
         {
-            request.Metadata.Add("object", uploadRequest.ObjectMetadata);
+            request.Metadata.Add("object", uploadRequest.FileMetadata);
         }
 
         var client = await CreateBucketClient(bucket.BucketName!);
