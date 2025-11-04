@@ -1,7 +1,10 @@
-﻿using Apps.AmazonS3.Actions;
+﻿using Apps.AmazonS3;
+using Apps.AmazonS3.Actions;
 using Apps.AmazonS3.DataSourceHandlers;
-using Apps.AmazonS3.Models.Request;
 using Blackbird.Applications.Sdk.Common.Dynamic;
+using Blackbird.Applications.Sdk.Common.Exceptions;
+using Blackbird.Applications.Sdk.Common.Invocation;
+using System.Reflection;
 using Tests.AmazonS3.Base;
 
 namespace Tests.AmazonS3;
@@ -11,24 +14,47 @@ public class BucketActionsTests : TestBase
 {
     public string BucketName = Guid.NewGuid().ToString();
 
-    private readonly BucketActions Actions;
+    // can't use parent method directly in DynamicData decorator as studio can't see it and shows a warning
+    public static string? GetConnectionTypeName(MethodInfo method, object[]? data) => GetConnectionTypeFromDynamicData(method, data);
 
-    public BucketActionsTests()
+    [TestMethod]
+    [DynamicData(nameof(AllBucketInvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task Create_and_delete_bucket_works(InvocationContext context)
     {
-        Actions = new BucketActions(InvocationContext);
+        // Arrange
+        var actions = new BucketActions(context);
+        var amazonInvokable = new AmazonInvocable(context);
+        var check = new BucketDataHandler(context);
+        var checkContext = new DataSourceContext();
+
+        // Act to create
+        await actions.CreateBucket(BucketName);        
+        var createCheck = await check.GetDataAsync(checkContext, CancellationToken.None);
+        Assert.IsTrue(createCheck.Any(x => x.Value == BucketName));
+
+        // Act to delete
+        await actions.DeleteBucket(BucketName);
+        var deleteCheck = await check.GetDataAsync(checkContext, CancellationToken.None);
+        Assert.IsTrue(deleteCheck.All(x => x.Value != BucketName));
     }
 
     [TestMethod]
-    public async Task Create_and_delete_bucket_works()
+    [DynamicData(nameof(SingleBucketInvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task Create_bucket_throws(InvocationContext context)
     {
-        var handler = new BucketDataHandler(InvocationContext);
+        var actions = new BucketActions(context);
 
-        await Actions.CreateBucket(BucketName);        
-        var result = await handler.GetDataAsync(new DataSourceContext { }, CancellationToken.None);
-        Assert.IsTrue(result.Any(x => x.Value == BucketName));
+        await Assert.ThrowsExactlyAsync<PluginMisconfigurationException>(() 
+            => actions.CreateBucket(BucketName));
+    }
 
-        await Actions.DeleteBucket(new BucketRequest { BucketName = BucketName });
-        result = await handler.GetDataAsync(new DataSourceContext { }, CancellationToken.None);
-        Assert.IsTrue(result.All(x => x.Value != BucketName));
+    [TestMethod]
+    [DynamicData(nameof(SingleBucketInvocationContexts), DynamicDataDisplayName = nameof(GetConnectionTypeName))]
+    public async Task Delete_bucket_throws(InvocationContext context)
+    {
+        var actions = new BucketActions(context);
+
+        await Assert.ThrowsExactlyAsync<PluginMisconfigurationException>(()
+            => actions.DeleteBucket(BucketName));
     }
 }

@@ -4,7 +4,7 @@ namespace Apps.AmazonS3.Webhooks.Models.Response;
 
 public class RecordResponse
 {
-    [Display("File key or folder prefix")]
+    [Display("File key or folder")]
     public string ObjectKey { get; set; } = string.Empty;
 
     [Display("ETag")]

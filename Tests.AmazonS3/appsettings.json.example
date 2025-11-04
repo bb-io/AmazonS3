@@ -1,8 +1,18 @@
 {
-  "ConnectionDefinition": {
-    "access_key": "",
-    "access_secret": "",
-    "region": "us-east-1"
-  },
-  "TestBucketName": "myuniquebucketfortesting"
+  "ConnectionDefinition": [
+    {
+      "connection_type": "Single bucket",
+      "access_key": "",
+      "access_secret": "",
+      "region": "us-east-1",
+      "bucket": ""
+    },
+    {
+      "connection_type": "Developer API key",
+      "access_key": "",
+      "access_secret": "",
+      "region": "us-east-1"
+    }
+  ],
+  "TestBucketNameForMultibucketConnectionType": "myuniquebucketfortesting"
 }

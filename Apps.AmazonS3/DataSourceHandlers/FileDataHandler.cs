@@ -3,14 +3,16 @@ using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems;
+using File = Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems.File;
 
 namespace Apps.AmazonS3.DataSourceHandlers;
 
-public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandler
+public class FileDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandler
 {
     private readonly string _bucketName;
+    private readonly FolderDataHandler _folderDataHandler;
 
-    public FolderDataHandler(
+    public FileDataHandler(
         InvocationContext invocationContext,
         [ActionParameter] BucketRequest bucketRequest)
         : base(invocationContext)
@@ -21,6 +23,7 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
             throw new("You should select a bucket in an input.");
 
         _bucketName = bucketRequest.BucketName;
+        _folderDataHandler = new FolderDataHandler(invocationContext, bucketRequest);
     }
 
     public async Task<IEnumerable<FileDataItem>> GetFolderContentAsync(
@@ -42,26 +45,20 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
 
         await foreach (var s3Object in objects.S3Objects)
         {
-            // filter out files
-            if (!s3Object.Key.EndsWith('/') || s3Object.Size != 0)
-                continue;
-
-            var folderWithoutPrefix = !string.IsNullOrEmpty(currentFolder)
+            var objectWithoutPrefix = !string.IsNullOrEmpty(currentFolder)
                 ? s3Object.Key.Replace(currentFolder, string.Empty)
                 : s3Object.Key;
-            var folderName = folderWithoutPrefix.TrimEnd('/');
+            var objectName = objectWithoutPrefix.TrimEnd('/');
 
-            // filter out nested folders and a current folder
-            if (folderName.Contains('/') || string.IsNullOrEmpty(folderName))
+            // filter out nested objects and a current folder
+            if (objectName.Contains('/') || string.IsNullOrEmpty(objectName))
                 continue;
 
-            content.Add(new Folder()
-            {
-                Id = s3Object.Key,
-                DisplayName = folderName,
-                Date = s3Object.LastModified,
-                IsSelectable = true,
-            });
+            FileDataItem dataItem = (!s3Object.Key.EndsWith('/') || s3Object.Size != 0)
+                ? new File { IsSelectable = true, Size = s3Object.Size, Id = s3Object.Key, DisplayName = objectName, Date = s3Object.LastModified }
+                : new Folder { IsSelectable = false, Id = s3Object.Key, DisplayName = objectName, Date = s3Object.LastModified };
+
+            content.Add(dataItem);
 
             if (cancellationToken.IsCancellationRequested)
                 break;
@@ -72,33 +69,6 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
 
     public Task<IEnumerable<FolderPathItem>> GetFolderPathAsync(FolderPathDataSourceContext context, CancellationToken _)
     {
-        var path = new List<FolderPathItem>()
-        {
-            new() { DisplayName = _bucketName, Id = "root" }
-        };
-
-        if (string.IsNullOrEmpty(context?.FileDataItemId))
-            return Task.FromResult<IEnumerable<FolderPathItem>>(path);
-
-        var folders = context.FileDataItemId.TrimEnd('/').Split('/');
-        if (folders.Length == 0)
-        {
-            path.Add(new() { DisplayName = context.FileDataItemId, Id = context.FileDataItemId });
-            return Task.FromResult<IEnumerable<FolderPathItem>>(path);
-        }
-
-        var currentPath = "";
-
-        foreach (var folder in folders)
-        {
-            currentPath += folder + "/";
-            path.Add(new()
-            {
-                DisplayName = folder,
-                Id = currentPath,
-            });
-        }
-
-        return Task.FromResult<IEnumerable<FolderPathItem>>(path);
+        return _folderDataHandler.GetFolderPathAsync(context, CancellationToken.None);
     }
 }

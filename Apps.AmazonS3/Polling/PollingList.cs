@@ -1,8 +1,10 @@
 using Amazon.S3.Model;
+using Apps.AmazonS3.DataSourceHandlers.Static;
 using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Response;
-using Apps.AmazonS3.Polling.Models.Memory;
 using Apps.AmazonS3.Utils;
+using Blackbird.Applications.Sdk.Common;
+using Blackbird.Applications.Sdk.Common.Dictionaries;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common.Polling;
 using Blackbird.Applications.SDK.Blueprints;
@@ -13,12 +15,15 @@ namespace Apps.AmazonS3.Polling;
 public class PollingList(InvocationContext invocationContext) : AmazonInvocable(invocationContext)
 {
     [BlueprintEventDefinition(BlueprintEvent.FilesCreatedOrUpdated)]
-    [PollingEvent("On files updated", "On any file created or updated")]
+    [PollingEvent("On files updated", "Triggered when a file is created or updated in the bucket.")]
     public async Task<PollingEventResponse<DateMemory, FilesResponse>> OnFilesUpdated(
         PollingEventRequest<DateMemory> request,
         [PollingEventParameter] BucketRequest bucket,
-        [PollingEventParameter] SearchFilesRequest folderRequest)
+        [PollingEventParameter] FolderRequest folderRequest,
+        [PollingEventParameter, Display("Folder relation"), StaticDataSource(typeof(FolderRelationTriggerDataHandler))] string? folderRelationTrigger)
     {
+        bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
+
         if (request.Memory == null)
         {
             return new()
@@ -35,10 +40,10 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
 
         try
         {
-            var client = await CreateBucketClient(bucket.BucketName);
+            var client = await CreateBucketClient(bucket.BucketName!);
             var objects = client.Paginators.ListObjectsV2(new()
             {
-                BucketName = bucket.BucketName,
+                BucketName = bucket.BucketName!,
                 Prefix = folderRequest.FolderId
             });
 
@@ -51,7 +56,7 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
                 if (s3Object.Key.EndsWith('/') && s3Object.Size == 0)
                     continue;
 
-                if (!ObjectUtils.IsObjectInFolder(s3Object, folderRequest))
+                if (!ObjectUtils.IsObjectInFolder(s3Object, folderRequest.FolderId, folderRelationTrigger))
                     continue;
 
                 result.Add(s3Object);
@@ -60,25 +65,20 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
         catch (Exception ex)
         {
             var errorMessage = "[AmazonS3 polling] Got an error while polling. "
-                + $"Method: OnFilesUpdated"
+                + $"Method: OnFilesUpdated "
                 + $"Exception message: {ex.Message}";
 
             InvocationContext.Logger?.LogError(errorMessage, [ex.Message]);
             throw;
         }
 
-        if (result.Count == 0)
-            return new()
-            {
-                FlyBird = false,
-                Memory = new() { LastInteractionDate = DateTime.UtcNow }
-            };
-
         return new()
         {
-            FlyBird = true,
+            FlyBird = result.Count > 0,
             Memory = new() { LastInteractionDate = DateTime.UtcNow },
-            Result = new() { Files = result.Select(x => new FileResponse(x)) }
+            Result = result.Count > 0
+                ? new() { Files = result.Select(x => new FileResponse(x)) }
+                : null
         };
     }
 }
