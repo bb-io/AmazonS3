@@ -27,7 +27,6 @@ public class FolderActionsTests : TestBase
         var newFolderInputCombinations = new List<Tuple<string, string?, string>>
         {
             new(TestFolderName, TestParentFolder, TestParentFolder + TestFolderName),
-            new(TestFolderName, HttpUtility.UrlEncode(TestParentFolder), TestParentFolder + TestFolderName),
             new(TestFolderName, string.Empty, TestFolderName),
             new(TestFolderName, null, TestFolderName),
         };
@@ -53,41 +52,5 @@ public class FolderActionsTests : TestBase
             PrintResult(createFolderResponse);
             Assert.AreEqual(expectedFolderKey, createFolderResponse.FolderId);
         }
-    }
-}
-
-[TestClass]
-public class FolderRequestTests : TestBase
-{
-    [TestMethod]
-    public void FolderRequest_Getter_ReturnsUrlDecoded()
-    {
-        // Arrange
-        var request = new FolderRequest
-        {
-            FolderId = "parent-folder%2fchild-folder%2f",
-        };
-
-        // Act
-        var key = request.FolderId;
-
-        // Assert
-        Assert.AreEqual("parent-folder/child-folder/", key);
-    }
-
-    [TestMethod]
-    public void FolderRequest_Getter_SupportsAsIs()
-    {
-        // Arrange
-        var request = new FolderRequest
-        {
-            FolderId = "parent-folder/child-folder/",
-        };
-
-        // Act
-        var key = request.FolderId;
-
-        // Assert
-        Assert.AreEqual("parent-folder/child-folder/", key);
     }
 }

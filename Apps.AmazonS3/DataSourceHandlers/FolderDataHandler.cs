@@ -29,7 +29,7 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
     {
         var currentFolder = context.FolderId == "root" || string.IsNullOrEmpty(context.FolderId)
             ? string.Empty
-            : HttpUtility.UrlDecode(context.FolderId);
+            : context.FolderId;
 
         var client = await CreateBucketClient(_bucketName);
         var objects = client.Paginators.ListObjectsV2(new()
@@ -58,7 +58,7 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
 
             content.Add(new Folder()
             {
-                Id = HttpUtility.UrlEncode(s3Object.Key),
+                Id = s3Object.Key,
                 DisplayName = folderName,
                 Date = s3Object.LastModified,
                 IsSelectable = true,
@@ -81,7 +81,7 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
         if (string.IsNullOrEmpty(context?.FileDataItemId))
             return Task.FromResult<IEnumerable<FolderPathItem>>(path);
 
-        var folders = HttpUtility.UrlDecode(context.FileDataItemId).TrimEnd('/').Split('/');
+        var folders = context.FileDataItemId.TrimEnd('/').Split('/');
         if (folders.Length == 0)
         {
             path.Add(new() { DisplayName = context.FileDataItemId, Id = context.FileDataItemId });
@@ -96,7 +96,7 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
             path.Add(new()
             {
                 DisplayName = folder,
-                Id = HttpUtility.UrlEncode(currentPath),
+                Id = currentPath,
             });
         }
 
