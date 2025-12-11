@@ -88,7 +88,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
     [Action("Upload file", Description = "Upload a file to an S3 bucket.")]
     public async Task<FileUploadResponse> UploadObject(
         [ActionParameter] BucketRequest bucket,
-        [ActionParameter] FolderRequest folder,
+        [ActionParameter] OptionalFolderRequest folder,
         [ActionParameter] UploadFileRequest uploadRequest)
     {
         bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
@@ -98,10 +98,10 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
 
         await fileStream.CopyToAsync(memoryStream);
 
-        var folderId = folder.FolderId?.TrimEnd('/') ?? string.Empty;
+        var folderId = folder is null ? string.Empty : folder.FolderId?.TrimEnd('/');
         var fileId = uploadRequest.FileId?.TrimStart('/') ?? uploadRequest.File.Name;
-        var keyParts = new List<string> { folderId, fileId }.Where(part => !string.IsNullOrEmpty(part));
-        var key = string.Join('/', keyParts).TrimStart('/');
+        var keyParts = new List<string> { folderId!, fileId }.Where(part => !string.IsNullOrEmpty(part));
+        var key = keyParts is null ? fileId : string.Join('/', keyParts).TrimStart('/');
 
         var request = new PutObjectRequest
         {
