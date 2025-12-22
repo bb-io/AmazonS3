@@ -7,4 +7,8 @@ public static class CredNames
     public const string Region = "region";
     public const string Bucket = "bucket";
     public const string ConnectionType = "connection_type";
+    public const string RoleArn = "role_arn";
+    public const string RoleSessionName = "role_session_name";
+    public const string ExternalId = "external_id";
+    public const string DurationSeconds = "duration_seconds";
 }

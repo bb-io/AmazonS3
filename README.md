@@ -12,11 +12,18 @@ Amazon S3 or Amazon Simple Storage Service is a service offered by Amazon Web Se
 
 Before you can connect you need to make sure that:
 
-- You have a **Amazon S3** account and you have the credentials to access it.
-- You have the `Access key` and `Access secret` for your Amazon S3 account.
-- You know `Region` for your Amazon S3 account.
+- You have an **Amazon S3** account and you have the credentials to access it.
+- You know the `Region` for your Amazon S3 account.
+- You will use **one** of the supported authentication methods:
+  - **Developer API key**: `Access key` + `Access secret`
+  - **Assume role**: `Source access key` + `Source access secret` + `Role ARN`
 
 You can find how to get the `Access key` and `Access secret` [here](https://support.promax.com/knowledge/amazon-s3).
+
+If you want to use **Assume role**, you can find the `Role ARN` in the AWS IAM console (Roles → select your role → copy ARN). See official AWS docs:
+- [AssumeRole (AWS STS)](https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html)
+- [ARN format (IAM)](https://docs.aws.amazon.com/IAM/latest/UserGuide/reference-arns.html)
+- [Update a role trust policy (IAM)](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_update-role-trust-policy.html)
 
 ## Connecting
 

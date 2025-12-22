@@ -8,6 +8,7 @@ using Amazon;
 using Amazon.SimpleNotificationService;
 using Blackbird.Applications.Sdk.Utils.Extensions.Sdk;
 using Amazon.S3.Model;
+using Amazon.SecurityToken.Model;
 
 namespace Apps.AmazonS3;
 public class AmazonInvocable : BaseInvocable
@@ -33,7 +34,9 @@ public class AmazonInvocable : BaseInvocable
         if (string.IsNullOrEmpty(key.Value) || string.IsNullOrEmpty(secret.Value) || string.IsNullOrEmpty(region.Value))
             throw new PluginMisconfigurationException("AWS User credentials missing. You need to specify access key and access secret to use Amazon S3");
 
-        S3Client = new(key.Value, secret.Value, new AmazonS3Config
+        var credentials = BuildCredentials(invocationContext.AuthenticationCredentialsProviders);
+
+        S3Client = new(credentials, new AmazonS3Config
         {
             RegionEndpoint = RegionEndpoint.GetBySystemName(region.Value)
         });
@@ -61,7 +64,9 @@ public class AmazonInvocable : BaseInvocable
             region = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.Region).Value;
         }
 
-        return new(key.Value, secret.Value, new AmazonS3Config
+        var credentials = BuildCredentials(InvocationContext.AuthenticationCredentialsProviders);
+
+        return new(credentials, new AmazonS3Config
         {
             RegionEndpoint = RegionEndpoint.GetBySystemName(region)
         });
@@ -77,7 +82,9 @@ public class AmazonInvocable : BaseInvocable
         if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(secret))
             throw new PluginMisconfigurationException("AWS User credentials missing. You need to specify access key and access secret to use Amazon S3");
 
-        return new(key, secret, new AmazonSimpleNotificationServiceConfig()
+        var credentials = BuildCredentials(InvocationContext.AuthenticationCredentialsProviders);
+
+        return new(credentials, new AmazonSimpleNotificationServiceConfig()
         {
             RegionEndpoint = region ?? defaultRegion
         });
@@ -117,6 +124,27 @@ public class AmazonInvocable : BaseInvocable
             }
             return response;
         });
+    }
+
+    private AWSCredentials BuildCredentials(IEnumerable<Blackbird.Applications.Sdk.Common.Authentication.AuthenticationCredentialsProvider> authProviders)
+    {
+        var key = authProviders.Get(CredNames.AccessKey).Value;
+        var secret = authProviders.Get(CredNames.AccessSecret).Value;
+
+        if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(secret))
+            throw new PluginMisconfigurationException("AWS User credentials missing. You need to specify access key and access secret to use Amazon S3");
+
+        var basicCredentials = new BasicAWSCredentials(key, secret);
+
+        var roleArn = authProviders.Get(CredNames.RoleArn)?.Value;
+        if (string.IsNullOrWhiteSpace(roleArn))
+        {
+            return basicCredentials;
+        }
+
+        var roleSessionName = "blackbird-session";
+        var options = new AssumeRoleAWSCredentialsOptions();
+        return new AssumeRoleAWSCredentials(basicCredentials, roleArn, roleSessionName, options);
     }
 }
 
