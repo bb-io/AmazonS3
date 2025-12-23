@@ -8,4 +8,5 @@ public static class CredNames
     public const string Bucket = "bucket";
     public const string ConnectionType = "connection_type";
     public const string RoleArn = "role_arn";
+    public const string ExternalId = "external_id";
 }

@@ -144,6 +144,13 @@ public class AmazonInvocable : BaseInvocable
 
         var roleSessionName = "blackbird-session";
         var options = new AssumeRoleAWSCredentialsOptions();
+        
+        var externalId = authProviders.FirstOrDefault(x => x.KeyName == CredNames.ExternalId)?.Value;
+        if (!string.IsNullOrWhiteSpace(externalId))
+        {
+            options.ExternalId = externalId;
+        }
+        
         return new AssumeRoleAWSCredentials(basicCredentials, roleArn, roleSessionName, options);
     }
 }
