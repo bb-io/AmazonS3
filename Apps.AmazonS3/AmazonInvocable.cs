@@ -136,7 +136,7 @@ public class AmazonInvocable : BaseInvocable
 
         var basicCredentials = new BasicAWSCredentials(key, secret);
 
-        var roleArn = authProviders.Get(CredNames.RoleArn)?.Value;
+        var roleArn = authProviders.FirstOrDefault(x => x.KeyName == CredNames.RoleArn)?.Value;
         if (string.IsNullOrWhiteSpace(roleArn))
         {
             return basicCredentials;

@@ -52,7 +52,6 @@ public class ConnectionDefinition : IConnectionDefinition
     public IEnumerable<AuthenticationCredentialsProvider> CreateAuthorizationCredentialsProviders(Dictionary<string, string> values)
     {
         var credentials = values.Select(x => new AuthenticationCredentialsProvider(x.Key, x.Value)).ToList();
-
         var connectionType = values[nameof(ConnectionPropertyGroup)] switch
         {
             var ct when ConnectionTypes.SupportedConnectionTypes.Contains(ct) => ct,
