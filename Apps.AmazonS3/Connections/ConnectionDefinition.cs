@@ -44,7 +44,8 @@ public class ConnectionDefinition : IConnectionDefinition
                 new(CredNames.AccessKey) { DisplayName = "Source access key" },
                 new(CredNames.AccessSecret) { DisplayName = "Source access secret", Sensitive = true },
                 new(CredNames.Region) { DisplayName = "Region", DataItems = RegionEndpoint.EnumerableAllRegions.Select(x => new ConnectionPropertyValue(x.SystemName, x.SystemName))  },
-                new(CredNames.RoleArn) { DisplayName = "Role ARN" }
+                new(CredNames.RoleArn) { DisplayName = "Role ARN" },
+                new(CredNames.ExternalId) { DisplayName = "External ID", Sensitive = true }
             ]
         }
     ];
@@ -52,7 +53,6 @@ public class ConnectionDefinition : IConnectionDefinition
     public IEnumerable<AuthenticationCredentialsProvider> CreateAuthorizationCredentialsProviders(Dictionary<string, string> values)
     {
         var credentials = values.Select(x => new AuthenticationCredentialsProvider(x.Key, x.Value)).ToList();
-
         var connectionType = values[nameof(ConnectionPropertyGroup)] switch
         {
             var ct when ConnectionTypes.SupportedConnectionTypes.Contains(ct) => ct,
