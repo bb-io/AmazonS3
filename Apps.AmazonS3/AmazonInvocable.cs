@@ -29,7 +29,7 @@ public class AmazonInvocable : BaseInvocable
         var key = invocationContext.AuthenticationCredentialsProviders.Get(CredNames.AccessKey);
         var secret = invocationContext.AuthenticationCredentialsProviders.Get(CredNames.AccessSecret);
         var region = invocationContext.AuthenticationCredentialsProviders.Get(CredNames.Region);
-        var serviceUrl = invocationContext.AuthenticationCredentialsProviders.Get(CredNames.ServiceUrl)?.Value;
+        var serviceUrl = invocationContext.AuthenticationCredentialsProviders.FirstOrDefault(x => x.KeyName == CredNames.ServiceUrl)?.Value;
 
         if (string.IsNullOrEmpty(key.Value) || string.IsNullOrEmpty(secret.Value) || string.IsNullOrEmpty(region.Value))
             throw new PluginMisconfigurationException("AWS User credentials missing. You need to specify access key and access secret to use Amazon S3");
