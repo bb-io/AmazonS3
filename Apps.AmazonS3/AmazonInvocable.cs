@@ -8,6 +8,7 @@ using Amazon;
 using Amazon.SimpleNotificationService;
 using Blackbird.Applications.Sdk.Utils.Extensions.Sdk;
 using Amazon.S3.Model;
+using Blackbird.Applications.Sdk.Common.Authentication;
 
 namespace Apps.AmazonS3;
 public class AmazonInvocable : BaseInvocable
@@ -151,7 +152,7 @@ public class AmazonInvocable : BaseInvocable
         });
     }
 
-    private AWSCredentials BuildCredentials(IEnumerable<Blackbird.Applications.Sdk.Common.Authentication.AuthenticationCredentialsProvider> authProviders)
+    private AWSCredentials BuildCredentials(IEnumerable<AuthenticationCredentialsProvider> authProviders)
     {
         var key = authProviders.Get(CredNames.AccessKey).Value;
         var secret = authProviders.Get(CredNames.AccessSecret).Value;
