@@ -1,5 +1,6 @@
 using Apps.AmazonS3.Models.Request;
 using Blackbird.Applications.Sdk.Common;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems;
@@ -20,7 +21,7 @@ public class FileDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandler
         bucketRequest.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
 
         if (string.IsNullOrWhiteSpace(bucketRequest.BucketName))
-            throw new("You should select a bucket in an input.");
+            throw new PluginMisconfigurationException("You should select a bucket in an input.");
 
         _bucketName = bucketRequest.BucketName;
         _folderDataHandler = new FolderDataHandler(invocationContext, bucketRequest);
