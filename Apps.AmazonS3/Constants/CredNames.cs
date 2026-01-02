@@ -9,4 +9,5 @@ public static class CredNames
     public const string ConnectionType = "connection_type";
     public const string RoleArn = "role_arn";
     public const string ExternalId = "external_id";
+    public const string ServiceUrl = "service_url";
 }

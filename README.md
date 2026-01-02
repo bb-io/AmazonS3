@@ -17,6 +17,7 @@ Before you can connect you need to make sure that:
 - You will use **one** of the supported authentication methods:
   - **Developer API key**: `Access key` + `Access secret`
   - **Assume role**: `Source access key` + `Source access secret` + `Role ARN` + `External ID` (optional)
+  - **S3 Compatible storage**: `Service URL` + `Access key` + `Access secret` + `Region`
 
 You can find how to get the `Access key` and `Access secret` [here](https://support.promax.com/knowledge/amazon-s3).
 

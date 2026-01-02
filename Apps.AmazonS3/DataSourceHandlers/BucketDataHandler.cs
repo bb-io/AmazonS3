@@ -9,8 +9,8 @@ public class BucketDataHandler(InvocationContext invocationContext) : AmazonInvo
 {
     public async Task<IEnumerable<DataSourceItem>> GetDataAsync(DataSourceContext context, CancellationToken cancellationToken)
     {
-        if (CurrentConnectionType != ConnectionTypes.AllBuckets)
-            throw new PluginMisconfigurationException($"Currently selected connection supports only '{ConnectedBucket}' bucket, so you don't need to specify bucket in the action's input. Please, switch to 'All buckets' conection for working with multiple buckets.");
+        if (CurrentConnectionType == ConnectionTypes.SingleBucket)
+            throw new PluginMisconfigurationException($"Currently selected connection supports only '{ConnectedBucket}' bucket, so you don't need to specify bucket in the action's input. Please, switch to 'All buckets' connection for working with multiple buckets.");
 
         var bucketResponse = await ExecuteAction(() => S3Client.ListBucketsAsync(cancellationToken));
         

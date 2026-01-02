@@ -68,7 +68,12 @@ public class TestBase
             var testBase = new TestBase();
             return testBase._invocationContexts
                 .Where(ctx => ctx.AuthenticationCredentialsProviders
-                    .Any(p => p.Value == ConnectionTypes.AllBuckets && p.KeyName == CredNames.ConnectionType))
+                    .Any(p => 
+                        (p.Value == ConnectionTypes.AllBuckets ||
+                        p.Value == ConnectionTypes.S3Compatible ||
+                        p.Value == ConnectionTypes.AssumeRole) && 
+                        p.KeyName == CredNames.ConnectionType)
+                    )
                 .Select(ctx => new object[] { ctx });
         }
     }

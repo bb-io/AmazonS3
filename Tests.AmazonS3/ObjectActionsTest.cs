@@ -57,7 +57,7 @@ public class ObjectActionsTest : TestBase
         // Arrange
         var actions = new ObjectActions(context, FileManager);
         var bucket = new BucketRequest { BucketName = TestBucketName };
-        var folder = new FolderRequest();
+        var folder = new OptionalFolderRequest();
         var upload = new UploadFileRequest { File = new FileReference { Name = TestFileName } };
 
         // Act
@@ -79,7 +79,7 @@ public class ObjectActionsTest : TestBase
         // Arrange
         var actions = new ObjectActions(context, FileManager);
         var bucket = new BucketRequest { BucketName = TestBucketName };
-        var folder = new FolderRequest { FolderId = "fol/" };
+        var folder = new OptionalFolderRequest { FolderId = "fol/" };
         var upload = new UploadFileRequest { File = new FileReference { Name = TestFileName } };
 
         // Act
@@ -122,7 +122,7 @@ public class ObjectActionsTest : TestBase
         var fileName = "simple-test.txt";
         var actions = new ObjectActions(context, FileManager);
         var bucket = new BucketRequest { BucketName = TestBucketName };
-        var folder = new FolderRequest();
+        var folder = new OptionalFolderRequest();
 
         var upload = new UploadFileRequest { File = new FileReference { Name = fileName } };
         await actions.UploadObject(bucket, folder, upload);

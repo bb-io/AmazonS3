@@ -47,6 +47,19 @@ public class ConnectionDefinition : IConnectionDefinition
                 new(CredNames.RoleArn) { DisplayName = "Role ARN" },
                 new(CredNames.ExternalId) { DisplayName = "External ID", Sensitive = true }
             ]
+        },
+        new() 
+        {
+            Name = ConnectionTypes.S3Compatible,
+            DisplayName = "S3 Compatible storage",
+            AuthenticationType = ConnectionAuthenticationType.Undefined,
+            ConnectionProperties = 
+            [
+                new(CredNames.ServiceUrl) { DisplayName = "Service URL", Description = "e.g. https://nyc3.digitaloceanspaces.com" },
+                new(CredNames.AccessKey) { DisplayName = "Access key" },
+                new(CredNames.AccessSecret) { DisplayName = "Access secret", Sensitive = true },
+                new(CredNames.Region) { DisplayName = "Region", Description = "e.g. us-east-1, nyc3, auto" },
+            ]
         }
     ];
 

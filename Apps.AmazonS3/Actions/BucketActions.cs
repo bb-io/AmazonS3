@@ -1,7 +1,6 @@
 ﻿using Amazon.S3.Model;
 using Apps.AmazonS3.Constants;
 using Apps.AmazonS3.DataSourceHandlers;
-using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Response;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
@@ -18,7 +17,7 @@ public class BucketActions(InvocationContext invocationContext) : AmazonInvocabl
     public async Task<BucketResponse> CreateBucket(
         [ActionParameter] [Display("Bucket name")] string bucketName)
     {
-        if (CurrentConnectionType != ConnectionTypes.AllBuckets)
+        if (CurrentConnectionType == ConnectionTypes.SingleBucket)
             throw new PluginMisconfigurationException($"Currently selected connection supports only '{ConnectedBucket}' bucket. Please, switch to 'All buckets' conection for working with buckets themselves.");
 
         var request = new PutBucketRequest
@@ -36,7 +35,7 @@ public class BucketActions(InvocationContext invocationContext) : AmazonInvocabl
     public async Task DeleteBucket(
         [ActionParameter, Display("Bucket name"), DataSource(typeof(BucketDataHandler))] string bucketName)
     {
-        if (CurrentConnectionType != ConnectionTypes.AllBuckets)
+        if (CurrentConnectionType == ConnectionTypes.SingleBucket)
             throw new PluginMisconfigurationException($"Currently selected connection supports only '{ConnectedBucket}' bucket. Please, switch to 'All buckets' conection for working with buckets themselves.");
 
         var request = new DeleteBucketRequest
