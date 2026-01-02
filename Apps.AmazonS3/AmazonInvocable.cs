@@ -8,7 +8,6 @@ using Amazon;
 using Amazon.SimpleNotificationService;
 using Blackbird.Applications.Sdk.Utils.Extensions.Sdk;
 using Amazon.S3.Model;
-using Amazon.SecurityToken.Model;
 
 namespace Apps.AmazonS3;
 public class AmazonInvocable : BaseInvocable
@@ -30,25 +29,53 @@ public class AmazonInvocable : BaseInvocable
         var key = invocationContext.AuthenticationCredentialsProviders.Get(CredNames.AccessKey);
         var secret = invocationContext.AuthenticationCredentialsProviders.Get(CredNames.AccessSecret);
         var region = invocationContext.AuthenticationCredentialsProviders.Get(CredNames.Region);
+        var serviceUrl = invocationContext.AuthenticationCredentialsProviders.Get(CredNames.ServiceUrl)?.Value;
 
         if (string.IsNullOrEmpty(key.Value) || string.IsNullOrEmpty(secret.Value) || string.IsNullOrEmpty(region.Value))
             throw new PluginMisconfigurationException("AWS User credentials missing. You need to specify access key and access secret to use Amazon S3");
-
+        
         var credentials = BuildCredentials(invocationContext.AuthenticationCredentialsProviders);
+        var config = new AmazonS3Config();
 
-        S3Client = new(credentials, new AmazonS3Config
+        if (!string.IsNullOrEmpty(serviceUrl))
         {
-            RegionEndpoint = RegionEndpoint.GetBySystemName(region.Value)
-        });
+            config.ServiceURL = serviceUrl;
+            config.ForcePathStyle = true;
+
+            if (!string.IsNullOrEmpty(region.Value))
+                config.AuthenticationRegion = region.Value;
+        }
+        else
+            config.RegionEndpoint = RegionEndpoint.GetBySystemName(region.Value);
+
+        S3Client = new AmazonS3Client(credentials, config);
     }
 
     public async Task<AmazonS3Client> CreateBucketClient(string bucketName)
     {
         if (CurrentConnectionType == ConnectionTypes.SingleBucket)
             bucketName = ConnectedBucket;
+        var credentials = BuildCredentials(InvocationContext.AuthenticationCredentialsProviders);
 
-        var key = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.AccessKey);
-        var secret = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.AccessSecret);
+        if (CurrentConnectionType == ConnectionTypes.S3Compatible)
+        {
+            var serviceUrl = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.ServiceUrl)?.Value;
+            var regionVal = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.Region)?.Value;
+
+            if (!string.IsNullOrEmpty(serviceUrl))
+            {
+                var config = new AmazonS3Config
+                {
+                    ServiceURL = serviceUrl,
+                    ForcePathStyle = true
+                };
+
+                if (!string.IsNullOrEmpty(regionVal))
+                    config.AuthenticationRegion = regionVal;
+
+                return new AmazonS3Client(credentials, config);
+            }
+        }
 
         string region;
         try
@@ -63,8 +90,6 @@ public class AmazonInvocable : BaseInvocable
         {
             region = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.Region).Value;
         }
-
-        var credentials = BuildCredentials(InvocationContext.AuthenticationCredentialsProviders);
 
         return new(credentials, new AmazonS3Config
         {

@@ -12,6 +12,21 @@
       "access_key": "",
       "access_secret": "",
       "region": "us-east-1"
+    },
+    {
+      "connection_type": "Assume role",
+      "access_key": "",
+      "access_secret": "",
+      "region": "us-east-1",
+      "role_arn": "",
+      "external_id": ""
+    },
+    {
+      "connection_type": "S3 Compatible storage",
+      "service_url": "",
+      "access_key": "",
+      "access_secret": "",
+      "region": ""
     }
   ],
   "TestBucketNameForMultibucketConnectionType": "myuniquebucketfortesting"
