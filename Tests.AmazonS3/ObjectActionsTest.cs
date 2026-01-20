@@ -40,7 +40,7 @@ public class ObjectActionsTest : TestBase
         // Arrange
         var actions = new ObjectActions(context, FileManager);
         var bucket = new BucketRequest { BucketName = TestBucketName };
-        var folder = new FolderRequest { FolderId = "fol/" };
+        var folder = new FolderRequest { FolderId = "test/" };
 
         // Act
         var result = await actions.ListObjectsInBucket(bucket, folder, null);

@@ -17,7 +17,7 @@ public class FileResponse(S3Object s3Object) : IDownloadFileInput
     public string ETag { get; init; } = s3Object.ETag;
 
     [Display("Storage class")]
-    public string? StorageClass { get; init; } = s3Object.StorageClass.Value;
+    public string? StorageClass { get; init; } = s3Object.StorageClass?.Value;
 
     [Display("Bucket name")]
     public string BucketName { get; init; } = s3Object.BucketName;

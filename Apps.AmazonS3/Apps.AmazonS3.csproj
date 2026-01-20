@@ -6,7 +6,7 @@
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Product>Amazon S3</Product>
     <Description>Object storage built to retrieve any amount of data from anywhere</Description>
-    <Version>2.1.4</Version>
+    <Version>2.1.5</Version>
     <AssemblyName>Apps.AmazonS3</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
