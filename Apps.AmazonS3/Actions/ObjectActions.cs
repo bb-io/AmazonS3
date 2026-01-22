@@ -84,6 +84,85 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         return new(response, file);
     }
 
+    [Action("Download all files", Description = "Download all files in a bucket. Optionally restrict to a folder. Returns array of files suitable for Zip files action.")]
+    public async Task<DownloadFilesResponse> DownloadAllFiles(
+        [ActionParameter] BucketRequest bucket,
+        [ActionParameter] OptionalFolderRequest? folder)
+    {
+        bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
+
+        var prefix = folder?.FolderId;
+
+        if (string.IsNullOrWhiteSpace(prefix) || prefix == "/")
+        {
+            prefix = string.Empty;
+        }
+        else
+        {
+            prefix = prefix.Trim('/');
+            prefix = prefix + "/";
+        }
+
+        var request = new ListObjectsV2Request
+        {
+            BucketName = bucket.BucketName!,
+            Prefix = prefix
+        };
+
+        var client = await CreateBucketClient(bucket.BucketName!);
+
+        var files = await ExecuteAction(async () =>
+        {
+            var result = new List<FileReference>();
+
+            await foreach (var s3Object in client.Paginators.ListObjectsV2(request).S3Objects)
+            {
+                if (s3Object.Key.EndsWith('/') && s3Object.Size == 0)
+                    continue;
+
+                var entryName = string.IsNullOrEmpty(prefix)
+                    ? s3Object.Key
+                    : s3Object.Key.StartsWith(prefix)
+                        ? s3Object.Key.Substring(prefix.Length).TrimStart('/')
+                        : s3Object.Key;
+
+                if (string.IsNullOrWhiteSpace(entryName))
+                    continue;
+
+                var contentType = "application/octet-stream";
+
+                try
+                {
+                    var meta = await client.GetObjectMetadataAsync(new GetObjectMetadataRequest
+                    {
+                        BucketName = bucket.BucketName!,
+                        Key = s3Object.Key
+                    });
+
+                    if (!string.IsNullOrWhiteSpace(meta.Headers.ContentType))
+                        contentType = meta.Headers.ContentType;
+                }
+                catch
+                {
+                }
+
+                var downloadUrl = client.GetPreSignedURL(new GetPreSignedUrlRequest
+                {
+                    BucketName = bucket.BucketName!,
+                    Key = s3Object.Key,
+                    Expires = DateTime.UtcNow.AddHours(1)
+                });
+
+                result.Add(new FileReference(new(HttpMethod.Get, downloadUrl), entryName, contentType));
+            }
+
+            return result;
+        });
+
+        return new DownloadFilesResponse { Files = files };
+    }
+    
+
     [BlueprintActionDefinition(BlueprintAction.UploadFile)]
     [Action("Upload file", Description = "Upload a file to an S3 bucket.")]
     public async Task<FileUploadResponse> UploadObject(
@@ -143,5 +222,17 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
 
         var client = await CreateBucketClient(bucket.BucketName!);
         await ExecuteAction(() => client.DeleteObjectAsync(request));
+    }
+
+    private static string NormalizePrefix(string? folderId)
+    {
+        if (string.IsNullOrWhiteSpace(folderId) || folderId == "/")
+            return string.Empty;
+
+        var normalized = folderId.Trim();
+
+        normalized = normalized.Trim('/');
+
+        return string.IsNullOrEmpty(normalized) ? string.Empty : normalized + "/";
     }
 }
