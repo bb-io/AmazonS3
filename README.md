@@ -53,6 +53,7 @@ Single files actions are using File key to locale specific object in S3 bucket. 
 
 - **Search files**: Retrieve a list of files from a specified bucket. Optionally search by folder prefix, e.g. specify a full folder path `example/folder/` to find all files.
 - **Download file**: Retrieve a specific file from a bucket.
+- **Download all files** : Retrieve all files from a specified bucket.
 - **Upload file**: Uploads a new file to a specified bucket.
 - **Delete file**: Remove a file from a bucket.
 
