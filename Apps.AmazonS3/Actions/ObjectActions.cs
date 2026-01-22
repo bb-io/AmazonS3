@@ -84,7 +84,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         return new(response, file);
     }
 
-    [Action("Download all files", Description = "Download all files in a bucket. Optionally restrict to a folder. Returns array of files suitable for Zip files action.")]
+    [Action("Download all files", Description = "Download all files in a bucket. Optionally restrict to a folder. Returns array of files")]
     public async Task<DownloadFilesResponse> DownloadAllFiles(
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] OptionalFolderRequest folder)
