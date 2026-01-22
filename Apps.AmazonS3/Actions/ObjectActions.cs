@@ -87,7 +87,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
     [Action("Download all files", Description = "Download all files in a bucket. Optionally restrict to a folder. Returns array of files suitable for Zip files action.")]
     public async Task<DownloadFilesResponse> DownloadAllFiles(
         [ActionParameter] BucketRequest bucket,
-        [ActionParameter] OptionalFolderRequest? folder)
+        [ActionParameter] OptionalFolderRequest folder)
     {
         bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
 
@@ -159,7 +159,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
             return result;
         });
 
-        return new DownloadFilesResponse { Files = files };
+        return new DownloadFilesResponse { Files = files, TotalFiles=files.Count() };
     }
     
 
