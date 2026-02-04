@@ -1,4 +1,5 @@
 ﻿using Amazon.S3.Model;
+using Apps.AmazonS3.Constants;
 using Apps.AmazonS3.DataSourceHandlers.Static;
 using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Response;
@@ -8,6 +9,7 @@ using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Dictionaries;
 using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
+using Blackbird.Applications.Sdk.Utils.Extensions.Sdk;
 using Blackbird.Applications.SDK.Blueprints;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Interfaces;
 
@@ -162,7 +164,6 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         return new DownloadFilesResponse { Files = files, TotalFiles=files.Count() };
     }
     
-
     [BlueprintActionDefinition(BlueprintAction.UploadFile)]
     [Action("Upload file", Description = "Upload a file to an S3 bucket.")]
     public async Task<FileUploadResponse> UploadObject(
@@ -175,7 +176,8 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         var fileStream = await fileManagementClient.DownloadAsync(uploadRequest.File);
         using var memoryStream = new MemoryStream();
 
-        await fileStream.CopyToAsync(memoryStream);
+        await fileStream.CopyToAsync(memoryStream); 
+        memoryStream.Position = 0;
 
         var folderId = folder is null ? string.Empty : folder.FolderId?.TrimEnd('/');
         var fileId = uploadRequest.FileId?.TrimStart('/') ?? uploadRequest.File.Name;
@@ -188,7 +190,8 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
             Key = key,
             InputStream = memoryStream,
             Headers = { ContentLength = memoryStream.Length },
-            ContentType = uploadRequest.File.ContentType
+            ContentType = uploadRequest.File.ContentType,
+            DisableDefaultChecksumValidation = IsGcp(),     // GCP does not support AWS checksums and returns 400 error
         };
 
         if (!string.IsNullOrEmpty(uploadRequest.FileMetadata))
@@ -224,15 +227,9 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         await ExecuteAction(() => client.DeleteObjectAsync(request));
     }
 
-    private static string NormalizePrefix(string? folderId)
+    private bool IsGcp()
     {
-        if (string.IsNullOrWhiteSpace(folderId) || folderId == "/")
-            return string.Empty;
-
-        var normalized = folderId.Trim();
-
-        normalized = normalized.Trim('/');
-
-        return string.IsNullOrEmpty(normalized) ? string.Empty : normalized + "/";
+        string serviceUrl = InvocationContext.AuthenticationCredentialsProviders.Get(CredNames.ServiceUrl).Value;
+        return serviceUrl.Contains("googleapis.com", StringComparison.OrdinalIgnoreCase);
     }
 }
