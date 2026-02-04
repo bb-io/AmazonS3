@@ -191,7 +191,7 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
             InputStream = memoryStream,
             Headers = { ContentLength = memoryStream.Length },
             ContentType = uploadRequest.File.ContentType,
-            DisableDefaultChecksumValidation = IsGcp(),     // GCP does not support AWS checksums and returns 400 error
+            DisableDefaultChecksumValidation = CurrentConnectionType == "S3 Compatible storage" ? IsGcp() : false,     // GCP does not support AWS checksums and returns 400 error
         };
 
         if (!string.IsNullOrEmpty(uploadRequest.FileMetadata))
