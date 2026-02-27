@@ -29,40 +29,39 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
     {
         var currentFolder = context.FolderId == "root" || string.IsNullOrEmpty(context.FolderId)
             ? string.Empty
-            : context.FolderId;
+            : context.FolderId; 
+        
+        if (!string.IsNullOrEmpty(currentFolder) && !currentFolder.EndsWith('/'))
+            currentFolder += "/";
 
         var client = await CreateBucketClient(_bucketName);
-        var objects = client.Paginators.ListObjectsV2(new()
+        var paginator = client.Paginators.ListObjectsV2(new()
         {
             BucketName = _bucketName,
             Prefix = currentFolder,
-            // we can't use Delimiter as it won't return folders to us, only files
+            Delimiter = "/"
         });
 
         var content = new List<FileDataItem>();
 
-        await foreach (var s3Object in objects.S3Objects)
+        await foreach (var response in paginator.Responses)
         {
-            // filter out files
-            if (!s3Object.Key.EndsWith('/') || s3Object.Size != 0)
-                continue;
-
-            var folderWithoutPrefix = !string.IsNullOrEmpty(currentFolder)
-                ? s3Object.Key.Replace(currentFolder, string.Empty)
-                : s3Object.Key;
-            var folderName = folderWithoutPrefix.TrimEnd('/');
-
-            // filter out nested folders and a current folder
-            if (folderName.Contains('/') || string.IsNullOrEmpty(folderName))
-                continue;
-
-            content.Add(new Folder()
+            foreach (var prefix in response.CommonPrefixes)
             {
-                Id = s3Object.Key,
-                DisplayName = folderName,
-                Date = s3Object.LastModified,
-                IsSelectable = true,
-            });
+                var folderName = string.IsNullOrEmpty(currentFolder)
+                    ? prefix.TrimEnd('/')
+                    : prefix.Substring(currentFolder.Length).TrimEnd('/');
+
+                if (string.IsNullOrEmpty(folderName))
+                    continue;
+
+                content.Add(new Folder()
+                {
+                    Id = prefix,
+                    DisplayName = folderName,
+                    IsSelectable = true,
+                });
+            }
 
             if (cancellationToken.IsCancellationRequested)
                 break;
