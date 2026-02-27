@@ -46,6 +46,9 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
 
         await foreach (var response in paginator.Responses)
         {
+            if (response.CommonPrefixes == null)
+                continue;
+
             foreach (var prefix in response.CommonPrefixes)
             {
                 var folderName = string.IsNullOrEmpty(currentFolder)
