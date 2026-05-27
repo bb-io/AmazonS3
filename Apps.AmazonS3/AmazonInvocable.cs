@@ -154,6 +154,9 @@ public class AmazonInvocable : BaseInvocable
 
     private AWSCredentials BuildCredentials(IEnumerable<AuthenticationCredentialsProvider> authProviders)
     {
+        // Dummy package reference so the compiler includes AWSSDK.SecurityToken.dll in the build output
+        _ = typeof(Amazon.SecurityToken.AmazonSecurityTokenServiceClient);
+        
         var key = authProviders.Get(CredNames.AccessKey).Value;
         var secret = authProviders.Get(CredNames.AccessSecret).Value;
 
