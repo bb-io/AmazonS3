@@ -6,6 +6,7 @@ using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Common;
 using Amazon;
 using Amazon.SimpleNotificationService;
+using Amazon.SecurityToken;
 using Blackbird.Applications.Sdk.Utils.Extensions.Sdk;
 using Amazon.S3.Model;
 using Blackbird.Applications.Sdk.Common.Authentication;
@@ -154,9 +155,6 @@ public class AmazonInvocable : BaseInvocable
 
     private AWSCredentials BuildCredentials(IEnumerable<AuthenticationCredentialsProvider> authProviders)
     {
-        // Dummy package reference so the compiler includes AWSSDK.SecurityToken.dll in the build output
-        _ = typeof(Amazon.SecurityToken.AmazonSecurityTokenServiceClient);
-        
         var key = authProviders.Get(CredNames.AccessKey).Value;
         var secret = authProviders.Get(CredNames.AccessSecret).Value;
 
@@ -170,6 +168,11 @@ public class AmazonInvocable : BaseInvocable
         {
             return basicCredentials;
         }
+
+        var region = authProviders.Get(CredNames.Region).Value;
+        using var stsClient = new AmazonSecurityTokenServiceClient(
+            basicCredentials,
+            RegionEndpoint.GetBySystemName(region));
 
         var roleSessionName = "blackbird-session";
         var options = new AssumeRoleAWSCredentialsOptions();
