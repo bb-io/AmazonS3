@@ -15,15 +15,10 @@
 	<PackageReference Include="Blackbird.Applications.Sdk.Utils" Version="1.0.26" />
 	<PackageReference Include="AWSSDK.S3" Version="4.0.18.8" />
     <PackageReference Include="AWSSDK.SimpleNotificationService" Version="4.0.2.18" />
-    <PackageReference Include="AWSSDK.SecurityToken" Version="4.0.5.11" GeneratePathProperty="true" />
+    <PackageReference Include="AWSSDK.SecurityToken" Version="4.0.5.11" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource CopyToOutputDirectory="Always" Include="image\icon.png" />
-    <None Include="$(PkgAWSSDK_SecurityToken)\lib\net8.0\AWSSDK.SecurityToken.dll"
-          Link="AWSSDK.SecurityToken.dll"
-          CopyToOutputDirectory="PreserveNewest"
-          CopyToPublishDirectory="PreserveNewest"
-          Visible="false" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="..\README.md">
