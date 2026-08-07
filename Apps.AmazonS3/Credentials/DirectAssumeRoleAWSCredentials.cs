@@ -2,6 +2,7 @@ using Amazon;
 using Amazon.Runtime;
 using Amazon.SecurityToken;
 using Amazon.SecurityToken.Model;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 
 namespace Apps.AmazonS3.Credentials;
 
@@ -44,16 +45,25 @@ internal sealed class DirectAssumeRoleAWSCredentials : RefreshingAWSCredentials
             request.ExternalId = _externalId;
         }
 
-        var response = await _stsClient.AssumeRoleAsync(request).ConfigureAwait(false);
+        AssumeRoleResponse response;
+        try
+        {
+            response = await _stsClient.AssumeRoleAsync(request).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            throw new PluginApplicationException(ex.Message, ex);
+        }
+
         var credentials = response.Credentials
-            ?? throw new InvalidOperationException("AWS STS returned no credentials for the assumed role.");
+            ?? throw new PluginApplicationException("AWS STS returned no credentials for the assumed role.");
 
         var immutableCredentials = new ImmutableCredentials(
             credentials.AccessKeyId,
             credentials.SecretAccessKey,
             credentials.SessionToken);
         var expiration = credentials.Expiration
-            ?? throw new InvalidOperationException("AWS STS returned credentials without an expiration time.");
+            ?? throw new PluginApplicationException("AWS STS returned credentials without an expiration time.");
 
         return new CredentialsRefreshState(immutableCredentials, expiration);
     }
