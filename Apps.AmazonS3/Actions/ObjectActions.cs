@@ -1,4 +1,5 @@
 ﻿using Amazon.S3.Model;
+using Amazon.S3;
 using Apps.AmazonS3.Constants;
 using Apps.AmazonS3.DataSourceHandlers.Static;
 using Apps.AmazonS3.Models.Request;
@@ -7,6 +8,7 @@ using Apps.AmazonS3.Utils;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
 using Blackbird.Applications.Sdk.Common.Dictionaries;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Files;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.Sdk.Utils.Extensions.Sdk;
@@ -18,6 +20,9 @@ namespace Apps.AmazonS3.Actions;
 [ActionList("Files")]
 public class ObjectActions (InvocationContext invocationContext, IFileManagementClient fileManagementClient) : AmazonInvocable(invocationContext)
 {
+    private const int MinimumPresignedUrlExpirationMinutes = 1;
+    private const int MaximumPresignedUrlExpirationMinutes = 7 * 24 * 60;
+
     [Action("Search files", Description = "Search for files in a specific S3 bucket.")]
     public async Task<FilesResponse> ListObjectsInBucket(
         [ActionParameter] BucketRequest bucket,
@@ -84,6 +89,41 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
 
         var file = new FileReference(new(HttpMethod.Get, downloadFileUrl), fileName, response.Headers.ContentType);
         return new(response, file);
+    }
+
+    [Action("Generate pre-signed download URL", Description = "Generate a temporary URL for downloading a private S3 object.")]
+    public async Task<PresignedDownloadUrlResponse> GeneratePresignedDownloadUrl(
+        [ActionParameter] BucketRequest bucket,
+        [ActionParameter] FileRequest fileRequest,
+        [ActionParameter, Display("Expiration time (minutes)", Description = "How long the URL remains valid. Must be between 1 and 10080 minutes (7 days).")]
+        int expirationMinutes)
+    {
+        if (string.IsNullOrWhiteSpace(fileRequest.FileId))
+            throw new PluginMisconfigurationException("File key is required.");
+
+        if (expirationMinutes is < MinimumPresignedUrlExpirationMinutes or > MaximumPresignedUrlExpirationMinutes)
+            throw new PluginMisconfigurationException(
+                $"Expiration time must be between {MinimumPresignedUrlExpirationMinutes} and {MaximumPresignedUrlExpirationMinutes} minutes.");
+
+        bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
+
+        var expiresAt = DateTime.UtcNow.AddMinutes(expirationMinutes);
+        var request = new GetPreSignedUrlRequest
+        {
+            BucketName = bucket.BucketName!,
+            Key = fileRequest.FileId,
+            Verb = HttpVerb.GET,
+            Expires = expiresAt
+        };
+
+        var client = await CreateBucketClient(bucket.BucketName!);
+        var url = await ExecuteAction(() => client.GetPreSignedURLAsync(request));
+
+        return new PresignedDownloadUrlResponse
+        {
+            Url = url,
+            ExpiresAt = expiresAt
+        };
     }
 
     [Action("Download all files", Description = "Download all files in a bucket. Optionally restrict to a folder. Returns array of files")]
