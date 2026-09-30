@@ -17,6 +17,9 @@ public class BucketActions(InvocationContext invocationContext) : AmazonInvocabl
     public async Task<BucketResponse> CreateBucket(
         [ActionParameter] [Display("Bucket name")] string bucketName)
     {
+        if (string.IsNullOrWhiteSpace(bucketName))
+            throw new PluginMisconfigurationException("Bucket name is required.");
+
         if (CurrentConnectionType == ConnectionTypes.SingleBucket)
             throw new PluginMisconfigurationException($"Currently selected connection supports only '{ConnectedBucket}' bucket. Please, switch to 'All buckets' conection for working with buckets themselves.");
 
@@ -35,6 +38,9 @@ public class BucketActions(InvocationContext invocationContext) : AmazonInvocabl
     public async Task DeleteBucket(
         [ActionParameter, Display("Bucket name"), DataSource(typeof(BucketDataHandler))] string bucketName)
     {
+        if (string.IsNullOrWhiteSpace(bucketName))
+            throw new PluginMisconfigurationException("Bucket name is required.");
+
         if (CurrentConnectionType == ConnectionTypes.SingleBucket)
             throw new PluginMisconfigurationException($"Currently selected connection supports only '{ConnectedBucket}' bucket. Please, switch to 'All buckets' conection for working with buckets themselves.");
 

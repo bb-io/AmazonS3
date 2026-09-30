@@ -4,6 +4,7 @@ using Apps.AmazonS3.Models.Request;
 using Apps.AmazonS3.Models.Response;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Actions;
+using Blackbird.Applications.Sdk.Common.Exceptions;
 using Blackbird.Applications.Sdk.Common.Invocation;
 using Blackbird.Applications.SDK.Extensions.FileManagement.Models.FileDataSourceItems;
 
@@ -18,6 +19,10 @@ public class FolderActions (InvocationContext invocationContext) : AmazonInvocab
         [ActionParameter, Display("New folder name")] string folderName,
         [ActionParameter, Display("Parent folder"), FileDataSource(typeof(FolderDataHandler))] string? parentFolderId)
     {
+        var normalizedFolderName = folderName?.Trim('/');
+        if (string.IsNullOrWhiteSpace(normalizedFolderName))
+            throw new PluginMisconfigurationException("Folder name is required.");
+
         bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
 
         var segments = new List<string>();
@@ -25,7 +30,7 @@ public class FolderActions (InvocationContext invocationContext) : AmazonInvocab
         if (!string.IsNullOrWhiteSpace(parentFolderId))
             segments.Add(parentFolderId.Trim('/'));
         
-        segments.Add(folderName.Trim('/'));
+        segments.Add(normalizedFolderName);
 
         var newFolderKey = string.Join('/', segments) + '/';
 
@@ -47,6 +52,9 @@ public class FolderActions (InvocationContext invocationContext) : AmazonInvocab
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] FolderRequest folderRequest)
     {
+        if (string.IsNullOrWhiteSpace(folderRequest.FolderId))
+            throw new PluginMisconfigurationException("Folder key is required.");
+
         bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
 
         var request = new DeleteObjectRequest

@@ -67,6 +67,9 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] FileRequest fileRequest)
     {
+        if (string.IsNullOrWhiteSpace(fileRequest.FileId))
+            throw new PluginMisconfigurationException("File key is required.");
+
         bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
 
         var request = new GetObjectRequest
@@ -213,16 +216,21 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
     {
         bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
 
+        var folderId = string.IsNullOrWhiteSpace(folder?.FolderId) ? string.Empty : folder.FolderId.TrimEnd('/');
+        var fileId = string.IsNullOrWhiteSpace(uploadRequest.FileId)
+            ? uploadRequest.File.Name
+            : uploadRequest.FileId.TrimStart('/');
+        var keyParts = new List<string> { folderId, fileId }.Where(part => !string.IsNullOrEmpty(part));
+        var key = string.Join('/', keyParts).TrimStart('/');
+
+        if (string.IsNullOrWhiteSpace(key))
+            throw new PluginMisconfigurationException("File key is required.");
+
         var fileStream = await fileManagementClient.DownloadAsync(uploadRequest.File);
         using var memoryStream = new MemoryStream();
 
         await fileStream.CopyToAsync(memoryStream); 
         memoryStream.Position = 0;
-
-        var folderId = folder is null ? string.Empty : folder.FolderId?.TrimEnd('/');
-        var fileId = uploadRequest.FileId?.TrimStart('/') ?? uploadRequest.File.Name;
-        var keyParts = new List<string> { folderId!, fileId }.Where(part => !string.IsNullOrEmpty(part));
-        var key = keyParts is null ? fileId : string.Join('/', keyParts).TrimStart('/');
 
         var request = new PutObjectRequest
         {
@@ -255,6 +263,9 @@ public class ObjectActions (InvocationContext invocationContext, IFileManagement
         [ActionParameter] BucketRequest bucket,
         [ActionParameter] FileRequest fileRequest)
     {
+        if (string.IsNullOrWhiteSpace(fileRequest.FileId))
+            throw new PluginMisconfigurationException("File key is required.");
+
         bucket.ProvideConnectionType(CurrentConnectionType, ConnectedBucket);
 
         var request = new DeleteObjectRequest
