@@ -47,20 +47,22 @@ public class PollingList(InvocationContext invocationContext) : AmazonInvocable(
                 Prefix = folderRequest.FolderId
             });
 
-
-            await foreach (var s3Object in objects.S3Objects)
+            await ExecuteAction(async () =>
             {
-                if (request.Memory.LastInteractionDate > s3Object.LastModified)
-                    continue;
+                await foreach (var s3Object in objects.S3Objects)
+                {
+                    if (request.Memory.LastInteractionDate > s3Object.LastModified)
+                        continue;
 
-                if (s3Object.Key.EndsWith('/') && s3Object.Size == 0)
-                    continue;
+                    if (s3Object.Key.EndsWith('/') && s3Object.Size == 0)
+                        continue;
 
-                if (!ObjectUtils.IsObjectInFolder(s3Object, folderRequest.FolderId, folderRelationTrigger))
-                    continue;
+                    if (!ObjectUtils.IsObjectInFolder(s3Object, folderRequest.FolderId, folderRelationTrigger))
+                        continue;
 
-                result.Add(s3Object);
-            }
+                    result.Add(s3Object);
+                }
+            });
         }
         catch (Exception ex)
         {
