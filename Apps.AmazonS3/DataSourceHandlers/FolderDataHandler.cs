@@ -42,35 +42,38 @@ public class FolderDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandle
             Delimiter = "/"
         });
 
-        var content = new List<FileDataItem>();
-
-        await foreach (var response in paginator.Responses)
+        return await ExecuteAction(async () =>
         {
-            if (response.CommonPrefixes == null)
-                continue;
+            var content = new List<FileDataItem>();
 
-            foreach (var prefix in response.CommonPrefixes)
+            await foreach (var response in paginator.Responses)
             {
-                var folderName = string.IsNullOrEmpty(currentFolder)
-                    ? prefix.TrimEnd('/')
-                    : prefix.Substring(currentFolder.Length).TrimEnd('/');
-
-                if (string.IsNullOrEmpty(folderName))
+                if (response.CommonPrefixes == null)
                     continue;
 
-                content.Add(new Folder()
+                foreach (var prefix in response.CommonPrefixes)
                 {
-                    Id = prefix,
-                    DisplayName = folderName,
-                    IsSelectable = true,
-                });
+                    var folderName = string.IsNullOrEmpty(currentFolder)
+                        ? prefix.TrimEnd('/')
+                        : prefix.Substring(currentFolder.Length).TrimEnd('/');
+
+                    if (string.IsNullOrEmpty(folderName))
+                        continue;
+
+                    content.Add(new Folder()
+                    {
+                        Id = prefix,
+                        DisplayName = folderName,
+                        IsSelectable = true,
+                    });
+                }
+
+                if (cancellationToken.IsCancellationRequested)
+                    break;
             }
 
-            if (cancellationToken.IsCancellationRequested)
-                break;
-        }
-
-        return content;
+            return content;
+        });
     }
 
     public Task<IEnumerable<FolderPathItem>> GetFolderPathAsync(FolderPathDataSourceContext context, CancellationToken _)

@@ -1,3 +1,4 @@
+using Amazon.S3.Model;
 using Apps.AmazonS3.Models.Request;
 using Blackbird.Applications.Sdk.Common;
 using Blackbird.Applications.Sdk.Common.Exceptions;
@@ -35,41 +36,45 @@ public class FileDataHandler : AmazonInvocable, IAsyncFileDataSourceItemHandler
             : context.FolderId;
 
         var client = await CreateBucketClient(_bucketName);
-        var objects = client.Paginators.ListObjectsV2(new()
+        var objects = client.Paginators.ListObjectsV2(CreateListRequestReturningFilesAndFolderMarkers(currentFolder));
+
+        return await ExecuteAction(async () =>
         {
-            BucketName = _bucketName,
-            Prefix = currentFolder,
-            // we can't use Delimiter as it won't return folders to us, only files
+            var content = new List<FileDataItem>();
+
+            await foreach (var s3Object in objects.S3Objects)
+            {
+                var objectWithoutPrefix = !string.IsNullOrEmpty(currentFolder)
+                    ? s3Object.Key.Replace(currentFolder, string.Empty)
+                    : s3Object.Key;
+                var objectName = objectWithoutPrefix.TrimEnd('/');
+
+                var isNestedObjectOrCurrentFolder = objectName.Contains('/') || string.IsNullOrEmpty(objectName);
+                if (isNestedObjectOrCurrentFolder)
+                    continue;
+
+                FileDataItem dataItem = (!s3Object.Key.EndsWith('/') || s3Object.Size != 0)
+                    ? new File { IsSelectable = true, Size = s3Object.Size, Id = s3Object.Key, DisplayName = objectName, Date = s3Object.LastModified }
+                    : new Folder { IsSelectable = false, Id = s3Object.Key, DisplayName = objectName, Date = s3Object.LastModified };
+
+                content.Add(dataItem);
+
+                if (cancellationToken.IsCancellationRequested)
+                    break;
+            }
+
+            return content;
         });
-
-        var content = new List<FileDataItem>();
-
-        await foreach (var s3Object in objects.S3Objects)
-        {
-            var objectWithoutPrefix = !string.IsNullOrEmpty(currentFolder)
-                ? s3Object.Key.Replace(currentFolder, string.Empty)
-                : s3Object.Key;
-            var objectName = objectWithoutPrefix.TrimEnd('/');
-
-            // filter out nested objects and a current folder
-            if (objectName.Contains('/') || string.IsNullOrEmpty(objectName))
-                continue;
-
-            FileDataItem dataItem = (!s3Object.Key.EndsWith('/') || s3Object.Size != 0)
-                ? new File { IsSelectable = true, Size = s3Object.Size, Id = s3Object.Key, DisplayName = objectName, Date = s3Object.LastModified }
-                : new Folder { IsSelectable = false, Id = s3Object.Key, DisplayName = objectName, Date = s3Object.LastModified };
-
-            content.Add(dataItem);
-
-            if (cancellationToken.IsCancellationRequested)
-                break;
-        }
-
-        return content;
     }
 
     public Task<IEnumerable<FolderPathItem>> GetFolderPathAsync(FolderPathDataSourceContext context, CancellationToken _)
     {
         return _folderDataHandler.GetFolderPathAsync(context, CancellationToken.None);
     }
+
+    private ListObjectsV2Request CreateListRequestReturningFilesAndFolderMarkers(string prefix) => new()
+    {
+        BucketName = _bucketName,
+        Prefix = prefix,
+    };
 }
