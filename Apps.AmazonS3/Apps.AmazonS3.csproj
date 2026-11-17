@@ -6,7 +6,7 @@
 	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <Product>Amazon S3</Product>
     <Description>Object storage built to retrieve any amount of data from anywhere</Description>
-    <Version>2.1.15</Version>
+    <Version>2.1.16</Version>
     <AssemblyName>Apps.AmazonS3</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
@@ -21,8 +21,6 @@
     <EmbeddedResource CopyToOutputDirectory="Always" Include="image\icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\README.md">
-      <Link>README.md</Link>
-    </Content>
+    <EmbeddedResource Include="..\README.md" Link="README.md" CopyToOutputDirectory="Always" />
   </ItemGroup>
 </Project>
