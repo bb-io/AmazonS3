@@ -1,4 +1,5 @@
-﻿using Amazon.Runtime;
+﻿using System.Net;
+using Amazon.Runtime;
 using Amazon.S3;
 using Apps.AmazonS3.Constants;
 using Blackbird.Applications.Sdk.Common.Exceptions;
@@ -123,9 +124,9 @@ public class AmazonInvocable : BaseInvocable
         {
             return await func();
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OutOfMemoryException)
         {
-            throw new PluginApplicationException(ex.Message, ex);
+            throw new PluginApplicationException(BuildErrorMessage(ex), ex);
         }
     }
 
@@ -135,24 +136,12 @@ public class AmazonInvocable : BaseInvocable
         {
             await func();
         }
-        catch (Exception ex)
+        catch (Exception ex) when (ex is not OutOfMemoryException)
         {
-            throw new PluginApplicationException(ex.Message, ex);
+            throw new PluginApplicationException(BuildErrorMessage(ex), ex);
         }
     }
-
-    public static async Task<IEnumerable<T>> ExecutePaginated<T, TResult>(IPaginatedEnumerable<TResult> paginatorResponses, Func<TResult, IEnumerable<T>> selector)
-    {
-        return await ExecuteAction(async () => {
-            var response = new List<T>();
-            await foreach (var page in paginatorResponses)
-            {
-                response.AddRange(selector(page));
-            }
-            return response;
-        });
-    }
-
+    
     private AWSCredentials BuildCredentials(IEnumerable<AuthenticationCredentialsProvider> authProviders)
     {
         var key = authProviders.Get(CredNames.AccessKey).Value;
@@ -179,6 +168,22 @@ public class AmazonInvocable : BaseInvocable
             roleSessionName,
             externalId,
             region);
+    }
+    
+    private static string BuildErrorMessage(Exception ex)
+    {
+        if (ex is not AmazonServiceException awsEx || !awsEx.Message.Contains("HttpErrorResponseException"))
+            return ex.Message;
+        
+        string reason = awsEx.StatusCode switch
+        {
+            HttpStatusCode.Forbidden => "Access denied. Check your credentials and bucket/object permissions",
+            HttpStatusCode.NotFound => "Bucket or object not found. Check the bucket name and object key",
+            HttpStatusCode.MovedPermanently => "Bucket is in a different region than the one in your connection",
+            _ => "Please check the bucket name, object key, region and permissions"
+        };
+        
+        return $"S3 request failed ({(int)awsEx.StatusCode} {awsEx.ErrorCode}). {reason}";
     }
 }
 
